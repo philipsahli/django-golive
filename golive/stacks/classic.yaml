@@ -1,0 +1,11 @@
+TASKS:
+    - ALL:
+       - golive.layers.base.UserSetup
+       - golive.layers.base.BaseSetup
+    - DB_HOST:
+       - golive.layers.db.PostgresSetup
+    - WEB_HOST:
+       - golive.layers.web.NginxSetup
+    - APP_HOST:
+       - golive.layers.app.PythonSetup
+       - golive.layers.app.ProjectDeployment
