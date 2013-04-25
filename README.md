@@ -1,15 +1,14 @@
 django-golive
 =============
 
-django-golive is focusing on the tasks executed on your hosts to get up and running
-a Django-site.
+django-golive is focusing on the tasks executed on your hosts to deploy and operate a Django-powered site.
 
 What brings django-golive?
 --------------------------
 
 - Golive-Stacks (Configuration-Templates ready to use)
 - Django Management Commands
-- Handles multiple environments (i.e. testing, production)
+- Multiple environments handling (i.e. testing, production)
 
 Commands
 --------
