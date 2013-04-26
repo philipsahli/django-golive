@@ -10,6 +10,17 @@ What brings django-golive?
 - Django Management Commands
 - Multiple environments handling (i.e. testing, production)
 
+Getting started
+---------------
+
+1. Install django-golive
+2. Add django-golive to settings.INSTALLED_APPS
+3. Create initial configuration file golive.yml
+4. Deploy the basics
+5. Set your secrets
+5. Deploy the rest
+6. Visit your page
+
 Commands
 --------
 ### Install the project
