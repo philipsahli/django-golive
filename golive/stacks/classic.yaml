@@ -1,11 +1,20 @@
-TASKS:
-    - ALL:
+ROLES:
+    WEB_HOST:
+      ORDER: 3
+      TASKS:
        - golive.layers.base.UserSetup
        - golive.layers.base.BaseSetup
-    - DB_HOST:
-       - golive.layers.db.PostgresSetup
-    - WEB_HOST:
        - golive.layers.web.NginxSetup
-    - APP_HOST:
+    DB_HOST:
+      ORDER: 1
+      TASKS:
+       - golive.layers.base.UserSetup
+       - golive.layers.base.BaseSetup
+       - golive.layers.db.PostgresSetup
+    APP_HOST:
+      ORDER: 2
+      TASKS:
+       - golive.layers.base.UserSetup
+       - golive.layers.base.BaseSetup
        - golive.layers.app.PythonSetup
-       - golive.layers.app.ProjectDeployment
+       - golive.layers.app.DjangoSetup
