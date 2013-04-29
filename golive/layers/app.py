@@ -114,7 +114,7 @@ class DjangoSetup(BaseTask, DjangoBaseTask):
             db_host = config['DB_HOST']
             # make db name
             #db_name = "%s" % (config['PROJECT_NAME'])
-            db_name = "%s" % (django.conf.settings.DATABASES['default']['NAME'])
+            db_name = "%s_%s" % (django.conf.settings.DATABASES['default']['NAME'], config['ENV_ID'])
             # create user (role)
             self.execute_once(run, ("createuser -h %s -U postgres -l -S -d -R %s" % (db_host, config['USER'])))
             # create database
