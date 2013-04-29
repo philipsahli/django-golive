@@ -1,4 +1,3 @@
-from collections import OrderedDict
 import sys
 from fabric.state import env
 import yaml
