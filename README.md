@@ -1,15 +1,25 @@
 django-golive
 =============
 
-django-golive is focusing on the tasks executed on your hosts to get up and running
-a Django-site.
+django-golive is focusing on the tasks executed on your hosts to deploy and operate a Django-powered site.
 
 What brings django-golive?
 --------------------------
 
 - Golive-Stacks (Configuration-Templates ready to use)
 - Django Management Commands
-- Handles multiple environments (i.e. testing, production)
+- Multiple environments handling (i.e. testing, production)
+
+Getting started
+---------------
+
+1. Install django-golive
+2. Add django-golive to settings.INSTALLED_APPS
+3. Create initial configuration file golive.yml
+4. Deploy the basics
+5. Set your secrets
+5. Deploy the rest
+6. Visit your page
 
 Usage
 --------
@@ -206,5 +216,8 @@ Features in the future
 [debian]: http://debian.org "Debian"
 [redhat]: http://redhat.org "Redhat"
 [centos]: http://debian.org "Centos"
+<<<<<<< HEAD
 [nginxsetup]: http://www.bla.com
 [newrelic]: http://www.newrelic.com "New Relic"
+=======
+>>>>>>> be0cd300de5a15d854417ada35f4844102557b7e
