@@ -1,6 +1,11 @@
 django-golive
 =============
 
+> ... is not yet production ready. If you are interested in any updates on this:
+
+> - follow [me] on Twitter
+> - join the [Mailinglist]
+
 django-golive is focusing on the tasks executed on your hosts to deploy and operate a Django-powered site.
 For the most common Django-sites you have to create a virtualenv, setup a database, install python-modules from pip
 and setup a webserver in front of a WSGI-process.
@@ -279,3 +284,5 @@ Features in the future
 [intovps]: http://www.intovps.com/plans.html "IntoVPS"
 [nginxsetup]: http://www.bla.com
 [newrelic]: http://www.newrelic.com "New Relic"
+[me]: https://twitter.com/philipsahli
+[Mailinglist]: https://groups.google.com/forum/?fromgroups#!forum/django-golive
