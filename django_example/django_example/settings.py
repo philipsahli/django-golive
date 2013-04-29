@@ -12,7 +12,7 @@ MANAGERS = ADMINS
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': '',                      # Or path to database file if using sqlite3.
+        'NAME': 'django_example',                      # Or path to database file if using sqlite3.
         # The following settings are not used with sqlite3:
         'USER': '',
         'PASSWORD': '',
@@ -155,21 +155,6 @@ LOGGING = {
             'level': 'ERROR',
             'propagate': True,
         },
-    }
-}
-
-DEPLOYMENT = {
-    'defaults': {
-        'INIT_USER': "fatrix",
-        'PROJECT_NAME': "django_example",
-        'USER': "golive",
-        'PUBKEY': "/Volumes/Data/Users/fatrix/.ssh/id_dsa.pub"
-    },
-    'test': {
-        'roles': {'APP_HOST': ["xcore", "xcore2"],
-                  'DB_HOST': ["xcoredb"],
-                  'CACHE_HOST': ["xcoredb"],
-                  'WEB_HOST': ["xcore"]}
     }
 }
 

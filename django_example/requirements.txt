@@ -1,4 +1,7 @@
 Django==1.5.1
 Fabric==1.6.0
 mock==1.0.1
-pip install git+git://github.com/fatrix/django-golive.git#egg=django-golive
+-e git+git://github.com/fatrix/django-golive.git#egg=django-golive
+flup
+psycopg2
+
