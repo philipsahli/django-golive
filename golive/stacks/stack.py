@@ -1,6 +1,8 @@
 import sys
+from fabric.contrib.files import append, contains, sed
 from fabric.state import env
 import yaml
+from fabric.tasks import execute
 
 config = None
 environment = None
@@ -113,6 +115,7 @@ class Stack(object):
     # Constants
     INIT = "init"
     UPDATE = "update"
+    SET_VAR = "set_var"
     CONFIG = "golive.yml"
     DEFAULTS = "DEFAULTS"
 
@@ -180,7 +183,6 @@ class Stack(object):
         #    to the same server.
         self.environment_config['USER'] = "%s_%s" % (self.environment_config['PROJECT_NAME'], self.environment_name)
 
-
     def host_to_roles(self):
         for role, hosts in self.environment_config['ROLES'].items():
             if hosts is None:
@@ -199,7 +201,7 @@ class Stack(object):
         mod.config.update({'DB_HOST': self.environment.get_role("DB_HOST").hosts[0]})
         mod.environment = self.environment
 
-    def do(self, job, task=None, role=None):
+    def do(self, job, task=None, role=None, full_args=None):
         # make stack config available to tasks
         self._set_stack_config()
 
@@ -212,16 +214,37 @@ class Stack(object):
                 self.update(selected_role=role)
             else:
                 self.update_all()
+        elif job == Stack.SET_VAR:
+            self.set_var(full_args)
         else:
             raise Exception("Job '%s' unknown" % job)
+
+    def set_var(self, full_args):
+        key = "GOLIVE_%s" % full_args[1]
+        value = full_args[2]
+        env.user = config['USER']
+        for host in self.environment.hosts:
+            print "configure var %s on host %s with value: %s" % (key, host, value)
+            # check if key already defined
+            args = ("$HOME/.golive.rc", "export %s=" % key, False)
+            defined = execute(contains, *args, host=host)
+            if defined[host]:
+                # we have to sed the line
+                args = ("$HOME/.golive.rc", "export %s=.*$" % key, "export %s=\"%s\"" % (key, value))
+                execute(sed, *args, host=host)
+            else:
+                # append it
+                args = ("$HOME/.golive.rc", "export %s=\"%s\"" % (key, value))
+                execute(append, *args, host=host)
+            sys.exit()
+
+
 
     def install_all(self):
         self._execute_tasks(Stack.INIT)
 
     def update_all(self):
         self._execute_tasks(Stack.UPDATE)
-
-    #def _cleanout_tasks(self):
 
     def update(self, selected_task=None, selected_role=None):
         if selected_task:
@@ -252,7 +275,6 @@ class Stack(object):
                 selected_roles_for_task.append(role)
             environment.roles = selected_roles_for_task
 
-
     def _execute_tasks(self, method):
         print "Executing '%s'" % method
         for role in self.environment.roles:
@@ -280,12 +302,6 @@ class Stack(object):
     def _prepare_env(self, role):
         env.roledefs.update({role: role.hosts})
         env.hosts = role.hosts
-
-    #def install_on_host(self, environment, host):
-    #    pass
-
-    #def install_on_role(self, environment, role):
-    #    pass
 
     @property
     def role_count(self):

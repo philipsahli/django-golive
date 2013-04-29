@@ -4,7 +4,7 @@ import tempfile
 from fabric.api import run as remote_run
 from fabric.context_managers import prefix, cd, settings, hide
 from fabric.contrib.files import exists, append
-from fabric.operations import sudo, put, get
+from fabric.operations import sudo, put, get, run
 from fabric.state import env
 from fabric.tasks import execute
 
@@ -189,7 +189,6 @@ class UserSetup(BaseTask):
     def init(self):
         # create baseuser
         from golive.stacks.stack import config
-        #print config
         env.user = config['INIT_USER']
         env.project_name = config['PROJECT_NAME']
         user = config['USER']
@@ -200,11 +199,18 @@ class UserSetup(BaseTask):
             # add to sudo
             self.append_with_inituser("/etc/sudoers", "%s ALL=NOPASSWD: ALL" % user, user=env.user)
 
-
         with settings(warn_only=True):
             with hide("warnings"):
                 self.sudo("mkdir /var/cache/pip")
                 self.sudo("chmod 777 /var/cache/pip")
+
+        # create rc file
+        with settings(warn_only=True):
+            #with hide("warnings"):
+                self.execute(sudo, "touch /home/%s/.golive.rc" % user)
+                self.execute(sudo, "chmod 600 /home/%s/.golive.rc" % user)
+                self.execute(sudo, "chown %s:%s /home/%s/.golive.rc" % (user, user, user))
+                self.append("/home/%s/.bashrc" % user, ". .golive.rc")
 
         # setup ssh pub-auth for user
         pubkey_file = config['PUBKEY']

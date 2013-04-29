@@ -11,8 +11,8 @@ than 5 minutes. Then you are ready to enjoy django-golive and won't repeat yours
 What brings django-golive?
 --------------------------
 
-- Django management commands
-- Golive-Stacks (Configuration-Templates ready to use)
+- Django-admin commands to deploy your project to a remote server(s)
+- Preconfigured stacks (configuration templates ready to use)
 - Multiple environments handling (i.e. testing, production)
 
 
@@ -31,17 +31,24 @@ Create initial configuration file golive.yml
 
     python manage.py create_config
 
+Customize golive.yml
+
+    vi golive.yml
+
 Deploy the basics
 
-    python manage.py init
+> Install a [Debian][debian] server on your own platform or choose a hosting provider (e.g. [IntoVPS][intovps]).
+> Don't forget to create the `INITIAL_USER` on the server with public key authentication.
+
+    python manage.py init ENVIRONMENT                         # change ENVIRONMENT to your ENVIRONMENT_ID
 
 Set your secrets
 
-    python manage.py set_var MYVAR 'VALUE'                    # Set variables which you can use in your
+    python manage.py set_var ENVIRONMENT MYVAR 'VALUE'        # Set variables which you can use in your
                                                               #    settings file, e.g.:
                                                               #
                                                               #    import os
-                                                              #    os.environ['MYVAR']
+                                                              #    os.environ['GOLIVE_MYVAR']
 
 Create settings file for environment
 
@@ -49,11 +56,11 @@ Create settings file for environment
 
 Deploy the rest
 
-    python manage.py deploy
+    python manage.py deploy ENVIRONMENT                       # change ENVIRONMENT to your ENVIRONMENT_ID
 
 Visit your page with curl:
 
-    curl http://SERVERNAME:80
+    curl http://SERVERNAME:80                                 # you configured SERVERNAME in golive.yml
 
 Configuration
 --------
@@ -77,7 +84,7 @@ The configuration file contains the desired stack, default and configurations pe
 
       TESTING:
           USER: exampleuser             # If not specified: {{PROJECT_NAME}}_{{ENVIRONMENT}}
-          SERVERNAME: golivetesting     # Is copied to /home/$USER/.ssh/authorized_keys2
+          SERVERNAME: golivetesting     # Used as virtualhost name in webservers configuration
           ROLES:                        # All of the hosts must be resolvable (DNS, hostfile)
              APP_HOST:
                - golivehost1
@@ -92,8 +99,8 @@ Deployment
 ----------
 ### Initial
 
-    python manage.py init YOURENV     # YOURENV can be e.g. testing, integration, production
-    python manage.py deploy YOURENV     # YOURENV can be e.g. testing, integration, production
+    python manage.py init ENVIRONMENT       # YOURENV can be e.g. testing, integration, production
+    python manage.py deploy ENVIRONMENT     # YOURENV can be e.g. testing, integration, production
 
 ### Update the project
     python manage.py update YOURENV                     # Tasks in all roles
@@ -111,21 +118,6 @@ Target Platforms
 ----------------
 
 At the moment only deployments to a set of installed [Debian] hosts is supported (`PLATFORM: DEDICATED`).
-
-### Future of the platform dedicated
-
-- Redhat (CentOS)
-
-### Future of supported IaaS platforms
-
-- OpenVZ
-- OpenStack
-- Amazon EC2
-
-### Future of supported PaaS platforms
-
-- Dotcloud
-- Openshift
 
 
 Builtin Components
@@ -267,6 +259,16 @@ For Developers
 Features in the future
 ----------------------
 - Install [newrelic] Server Monitoring Agent
+- New stacks
+  - Gunicorn
+  - Django and Websockets
+- Deploy to Dedicated Redhat servers
+- Deploy to IaaS platforms
+  - Amazon EC2
+  - Openstack
+- Deploy to PaaS platforms
+  - Dotcloud
+  - Openshift
 
 [example-stackfile]: golive/stacks/ "Example Stackfile"
 
@@ -274,5 +276,6 @@ Features in the future
 [debian]: http://debian.org "Debian"
 [redhat]: http://redhat.org "Redhat"
 [centos]: http://debian.org "Centos"
+[intovps]: http://www.intovps.com/plans.html "IntoVPS"
 [nginxsetup]: http://www.bla.com
 [newrelic]: http://www.newrelic.com "New Relic"
