@@ -1,0 +1,21 @@
+CONFIG:
+  PLATFORM: DEDICATED
+  STACK: CLASSIC
+
+ENVIRONMENTS:
+
+  DEFAULTS:
+    INIT_USER: fatrix
+    PROJECT_NAME: mezzanine_example
+    USER: golive
+    PUBKEY: /Volumes/Data/Users/fatrix/.ssh/id_dsa.pub
+
+  SANDBOX2:
+      SERVERNAME: golive-sandbox2
+      ROLES:
+         APP_HOST:
+           - golive-sandbox2
+         DB_HOST:
+           - golive-sandbox2
+         WEB_HOST:
+           - golive-sandbox2
