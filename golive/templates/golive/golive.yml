@@ -1,0 +1,19 @@
+CONFIG:
+  PLATFORM: DEDICATED
+  STACK: CLASSIC
+
+ENVIRONMENTS:
+  DEFAULTS:
+    INIT_USER: myuser
+    PROJECT_NAME: exampleproject
+    PUBKEY: $HOME/.ssh/id_dsa.pub
+
+  TESTING:
+      SERVERNAME: examplehost
+      ROLES:
+         APP_HOST:
+           - examplehost
+         DB_HOST:
+           - examplehost
+         WEB_HOST:
+           - examplehost

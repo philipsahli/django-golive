@@ -7,15 +7,14 @@ ENVIRONMENTS:
   DEFAULTS:
     INIT_USER: fatrix
     PROJECT_NAME: mezzanine_example
-    USER: golive
     PUBKEY: /Volumes/Data/Users/fatrix/.ssh/id_dsa.pub
 
-  SANDBOX2:
-      SERVERNAME: golive-sandbox2
+  SANDBOX3:
+      SERVERNAME: golive-sandbox3
       ROLES:
          APP_HOST:
-           - golive-sandbox2
+           - golive-sandbox3
          DB_HOST:
-           - golive-sandbox2
+           - golive-sandbox3
          WEB_HOST:
-           - golive-sandbox2
+           - golive-sandbox3

@@ -6,7 +6,6 @@ ENVIRONMENTS:
   DEFAULTS:
     INIT_USER: fatrix
     PROJECT_NAME: django_example
-    USER: golive
     PUBKEY: /Volumes/Data/Users/fatrix/.ssh/id_dsa.pub
     # TODO: add pip packages not in requirements
     # TODO: add custom debian packages
@@ -30,33 +29,3 @@ ENVIRONMENTS:
            - golive-sandbox2
          WEB_HOST:
            - golive-sandbox2
-
-
-  TESTING:
-      SERVERNAME: xcoretest
-      ROLES:
-         APP_HOST:
-           - xcore
-           - xcore2
-         DB_HOST:
-           - xcoredb
-         WEB_HOST:
-           - xcore
-  INTEGRATION:
-      SERVERNAME: xcoreint
-      ROLES:
-         APP_HOST:
-           - xcore3
-         WEB_HOST:
-           - xcore3
-         DB_HOST:
-           - xcore3
-  PRODUCTION:
-      SERVERNAME: xcoreprod
-      ROLES:
-         APP_HOST:
-           - xcore3
-         DB_HOST:
-           - xcore3
-         WEB_HOST:
-           - xcore3

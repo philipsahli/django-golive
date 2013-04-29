@@ -11,7 +11,7 @@ import django
 
 class PythonSetup(BaseTask, DebianPackageMixin):
     ROLES = "APP_HOST"
-    package_name = 'python-virtualenv python-pip virtualenvwrapper libpq-dev'
+    package_name = 'python-virtualenv python-pip virtualenvwrapper'
 
     def init(self, update=True):
         DebianPackageMixin.init(self, update)
@@ -30,7 +30,6 @@ class DjangoSetup(BaseTask, DjangoBaseTask):
     def __init__(self):
         super(DjangoSetup, self).__init__()
         # TODO: create link from home-folder to the configfile
-        #self.supervisor_appname = "supervisor_%s" % config['PROJECT_NAME']
         self.supervisor_appname = "%s_%s" % (config['PROJECT_NAME'], config['ENV_ID'])
 
     def init(self):
@@ -98,8 +97,8 @@ class DjangoSetup(BaseTask, DjangoBaseTask):
         env.user = config['USER']
         with prefix('. %s/.virtualenvs/%s/bin/activate' % (env.remote_home, env.project_name)):
             with cd("%s/code/%s" % (env.remote_home, env.project_name)):
-                #self.execute(run, "pip install --download-cache=/var/cache/pip -r requirements.txt")
-                self.execute(run, "pip install -r requirements.txt")
+                self.execute(run, "pip install --download-cache=/var/cache/pip -r requirements.txt")
+                #self.execute(run, "pip install -r requirements.txt")
 
     @runs_once
     def _syncdb(self):

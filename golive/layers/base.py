@@ -200,6 +200,12 @@ class UserSetup(BaseTask):
             # add to sudo
             self.append_with_inituser("/etc/sudoers", "%s ALL=NOPASSWD: ALL" % user, user=env.user)
 
+
+        with settings(warn_only=True):
+            with hide("warnings"):
+                self.sudo("mkdir /var/cache/pip")
+                self.sudo("chmod 777 /var/cache/pip")
+
         # setup ssh pub-auth for user
         pubkey_file = config['PUBKEY']
         with settings(warn_only=True):

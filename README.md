@@ -2,31 +2,67 @@ django-golive
 =============
 
 django-golive is focusing on the tasks executed on your hosts to deploy and operate a Django-powered site.
+For the most common Django-sites you have to create a virtualenv, setup a database, install python-modules from pip
+and setup a webserver in front of a WSGI-process.
+
+All these steps is doing django-golive for you. All you have to do is to prepare your project, which takes less
+than 5 minutes. Then you are ready to enjoy django-golive and won't repeat yourself anymore!
 
 What brings django-golive?
 --------------------------
 
+- Django management commands
 - Golive-Stacks (Configuration-Templates ready to use)
-- Django Management Commands
 - Multiple environments handling (i.e. testing, production)
+
 
 Getting started
 ---------------
 
-1. Install django-golive
-2. Add django-golive to settings.INSTALLED_APPS
-3. Create initial configuration file golive.yml
-4. Deploy the basics
-5. Set your secrets
-5. Deploy the rest
-6. Visit your page
+Install django-golive
 
-Usage
+    pip install django-golive
+
+Add django-golive to settings.INSTALLED_APPS
+
+    vi settings.py
+
+Create initial configuration file golive.yml
+
+    python manage.py create_config
+
+Deploy the basics
+
+    python manage.py init
+
+Set your secrets
+
+    python manage.py set_var MYVAR 'VALUE'                    # Set variables which you can use in your
+                                                              #    settings file, e.g.:
+                                                              #
+                                                              #    import os
+                                                              #    os.environ['MYVAR']
+
+Create settings file for environment
+
+    echo "from settings import *" > settings_ENVIRONMENT.py   # change ENVIRONMENT to your ENVIRONMENT_ID
+
+Deploy the rest
+
+    python manage.py deploy
+
+Visit your page with curl:
+
+    curl http://SERVERNAME:80
+
+Configuration
 --------
-### Configuration
 
-Create a golive.yml in the root of your Django-project. In the configuration file you define the target platform and
-the desired stack.
+You can create with the following command a starting configuration file `golive.yml` in the root of your Django-project:
+
+    python manage.py create_config
+
+The configuration file contains the desired stack, default and configurations per environment:
 
     CONFIG:
       PLATFORM: DEDICATED
@@ -34,14 +70,15 @@ the desired stack.
 
     ENVIRONMENTS:
       DEFAULTS:
-        INIT_USER: myuser
+        INIT_USER: myuser               # For the user creation step
         PROJECT_NAME: exampleproject
-        USER: exampleuser
-        PUBKEY: $HOME/.ssh/id_dsa.pub
+        USER: exampleuser               # If not specified: {{PROJECT_NAME}}_{{ENVIRONMENT}}
+        PUBKEY: $HOME/.ssh/id_dsa.pub   # Is copied to /home/$USER/.ssh/authorized_keys2
 
       TESTING:
-          SERVERNAME: golivetestin
-          ROLES:
+          USER: exampleuser             # If not specified: {{PROJECT_NAME}}_{{ENVIRONMENT}}
+          SERVERNAME: golivetesting     # Is copied to /home/$USER/.ssh/authorized_keys2
+          ROLES:                        # All of the hosts must be resolvable (DNS, hostfile)
              APP_HOST:
                - golivehost1
                - golivehost2
@@ -50,8 +87,13 @@ the desired stack.
              WEB_HOST:
                - goliveweb
 
-### Install the project
+
+Deployment
+----------
+### Initial
+
     python manage.py init YOURENV     # YOURENV can be e.g. testing, integration, production
+    python manage.py deploy YOURENV     # YOURENV can be e.g. testing, integration, production
 
 ### Update the project
     python manage.py update YOURENV                     # Tasks in all roles
@@ -99,15 +141,19 @@ Builtin Components
 
     Adds entries for every host in environment to the file `/etc/hosts`.
 
+***
+
 ### golive.layers.base.UserSetup
 * User creation
 
-    Creates the user with the name `USER`specified in `golive.yml`. For the first login
-    a existant user `INIT_USER` with key-authentication is required to be able to perform these steps.
+    Creates the user with the name `USER` specified in `golive.yml` of if not specified as `PROJECT_NAME`_`ENVIRONMENT`.
+    For the first login an existant user `INIT_USER` with key-authentication is required to be able to perform these steps.
 
 * SSH Pubkey
 
     Copies a pubkey `PUBKEY` to the `authorized_keys2` file on the servers to be able to login with key-authentication.
+
+***
 
 ### golive.layers.web.NginxSetup
 * Configure Frontend-Webserver
@@ -118,10 +164,16 @@ Builtin Components
 <!-- TODO: ### golive.layers.cache.RedisSetup
 - Cachehost (Redis Key/Value-Store for Caching)
 -->
+
+***
+
 ### golive.layers.app.PythonSetup
 * Virtualenv Environment
 
     Creates a virtualenv in `$HOME/.virtualenvs` with the name of the project (`PROJECT_NAME`).
+
+***
+
 ### golive.layers.db.PostgresSetup
 * Postgresql installation
 
@@ -129,8 +181,10 @@ Builtin Components
 
 * Configure Postgresql
 
-    - Allow access from the subnet `192.168.0.0/16`.
-    - Listen on the network interface.
+    - Allow access from every host in the role `WEB_HOST`.
+    - Listen on all network interfaces (`0.0.0.0`).
+
+***
 
 ### golive.layers.app.DjangoSetup
 * Directories
@@ -153,11 +207,15 @@ Builtin Components
 * Prepare Database
 
     - Create user (role) `USER` on `DB_HOST`.
-    - Create database `PROJECT_NAME` on `DB_HOST` with owner `USER`.
+    - Create database `PROJECT_NAME`_`ENVIRONMENT` on `DB_HOST` with owner `USER`.
 
 * Synchronize Databaseschema
 
-    Exceutes `syncdb` django command. If south is installed, `migratedb` in addition.
+    Executes `syncdb` django command. If south is installed, `migratedb` in addition.
+
+* Collect staticfiles
+
+    Collects the staticfiles with the standard django-admin command to $HOME/static/
 
 * Start django process
 
@@ -216,8 +274,5 @@ Features in the future
 [debian]: http://debian.org "Debian"
 [redhat]: http://redhat.org "Redhat"
 [centos]: http://debian.org "Centos"
-<<<<<<< HEAD
 [nginxsetup]: http://www.bla.com
 [newrelic]: http://www.newrelic.com "New Relic"
-=======
->>>>>>> be0cd300de5a15d854417ada35f4844102557b7e

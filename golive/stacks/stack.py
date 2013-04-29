@@ -1,7 +1,6 @@
 import sys
 from fabric.state import env
 import yaml
-from golive.utils import nprint
 
 config = None
 environment = None
@@ -152,7 +151,8 @@ class Stack(object):
         # add environment roles
         self.environment_config.update({'ROLES': self.environment_config_temp[self.environment_name.upper()]['ROLES']})
 
-        roles = stack_config['ROLES']
+        # set remote user in the environment
+        self._set_user()
 
         for role, tasks in stack_config['ROLES'].items():
             # create role object
@@ -165,6 +165,21 @@ class Stack(object):
             self.environment.add_role(role_obj)
 
         self.host_to_roles()
+
+    def _set_user(self):
+        # custom uer is defined in DEFAULTS no further action needed
+        if 'USER' in self.environment_config:
+            return
+        # custom user is defined in environment
+        if 'USER' in self.environment_config_temp[self.environment_name.upper()]:
+            self.environment_config['USER'] = self.environment_config_temp[self.environment_name.upper()]['USER']
+            return
+        # normal behaviour is to use a username in form:
+        #    PROJECT_NAME_ENVIRONMENT
+        # this allows to separate all data in $HOME, multiple environments of the same project can be deployed
+        #    to the same server.
+        self.environment_config['USER'] = "%s_%s" % (self.environment_config['PROJECT_NAME'], self.environment_name)
+
 
     def host_to_roles(self):
         for role, hosts in self.environment_config['ROLES'].items():

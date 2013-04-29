@@ -1,5 +1,5 @@
 import tempfile
-from fabric.operations import sudo
+from fabric.operations import sudo, local
 from golive.layers.base import TemplateBasedSetup, DebianPackageMixin
 from golive.stacks.stack import config, environment
 
@@ -36,3 +36,5 @@ class NginxSetup(DebianPackageMixin, TemplateBasedSetup):
         # TODO: add autostart
         self.execute(sudo, "/etc/init.d/nginx reload")
         self.execute(sudo, "/etc/init.d/nginx start")
+
+        print local("curl -I http://%s" % config['SERVERNAME'], capture=True)

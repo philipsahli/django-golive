@@ -1,8 +1,9 @@
 from django.conf import settings
 import datetime
+import socket
 from fabric.operations import run
 from golive.layers.base import DjangoBaseTask, DebianPackageMixin, BaseTask
-from golive.stacks.stack import config
+from golive.stacks.stack import config, environment
 
 
 #class DbEngineFactory(object):
@@ -17,22 +18,20 @@ from golive.stacks.stack import config
 
 
 class PostgresSetup(BaseTask, DjangoBaseTask, DebianPackageMixin):
-    package_name = 'postgresql'
+    package_name = 'postgresql libpq-dev'
     ROLES = "DB_HOST"
 
     def init(self, update=True):
         DebianPackageMixin.init(self, update)
-        self.append("/etc/postgresql/8.4/main/pg_hba.conf",
-                                  "host    all         all         192.168.0.0/16          trust")
-        self.append("/etc/postgresql/8.4/main/pg_hba.conf",
-                    "host    all         all         10.211.0.0/16          trust")
-        #self.append("/etc/postgresql/8.4/main/postgresql.conf",
-        #                          "listen_addresses = '%s'" % config['DB_HOST'])
-        self.append("/etc/postgresql/8.4/main/postgresql.conf",
-                    "listen_addresses = '*'")
-        # TODO: add security
-        # TODO: only restart when needed
+        hosts = self._allowed_hosts()
+        for host in hosts:
+            self.append("/etc/postgresql/8.4/main/pg_hba.conf",
+                               "host    all         all         %s/32          trust" % host)
+        self.append("/etc/postgresql/8.4/main/postgresql.conf", "listen_addresses = '*'")
         self.execute(run, "sudo /etc/init.d/postgresql restart")
+
+    def _allowed_hosts(self):
+        return [socket.gethostbyname(x) for x in environment.get_role('WEB_HOST').hosts]
 
     def _backup(self):
         db_name = "%s" % config['PROJECT_NAME']

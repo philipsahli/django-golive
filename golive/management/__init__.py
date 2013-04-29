@@ -9,20 +9,6 @@ class CoreCommand(BaseCommand):
     env_id = '<env_id>'
     help = 'Manage the given environment'
     output['stdout'] = False
-    # option_list = BaseCommand.option_list + (
-    #     make_option('--role',
-    #                 dest='role',
-    #                 default=None,
-    #                 help='Operate on roles'),
-    #     make_option('--host',
-    #                 dest='host',
-    #                 default=None,
-    #                 help='Operate on hosts'),
-    #     make_option('--task',
-    #                 dest='task',
-    #                 default=None,
-    #                 help='Execute tasks only'),
-    #)
 
     def get_config_value(self, key):
         return self.config[key]
@@ -46,7 +32,7 @@ class CoreCommand(BaseCommand):
             task = options['task']
         # role decision
         role = None
-        if options.has_key('role'):
+        if 'role' in options.keys():
             role = options['role']
 
         # execute
