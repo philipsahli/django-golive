@@ -219,15 +219,18 @@ class Stack(object):
         else:
             raise Exception("Job '%s' unknown" % job)
 
+    # TODO: extract to Task (SetVarTask)
     def set_var(self, full_args):
-        key = "GOLIVE_%s" % full_args[1]
-        value = full_args[2]
+        key, value = "GOLIVE_%s" % full_args[1], full_args[2]
         env.user = config['USER']
-        for host in self.environment.hosts:
-            print "configure var %s on host %s with value: %s" % (key, host, value)
+        for host in list(set(self.environment.hosts)):
+
+            print "configure variable %s on host %s with value: %s" % (key, host, value)
+
             # check if key already defined
             args = ("$HOME/.golive.rc", "export %s=" % key, False)
             defined = execute(contains, *args, host=host)
+
             if defined[host]:
                 # we have to sed the line
                 args = ("$HOME/.golive.rc", "export %s=.*$" % key, "export %s=\"%s\"" % (key, value))
@@ -236,9 +239,6 @@ class Stack(object):
                 # append it
                 args = ("$HOME/.golive.rc", "export %s=\"%s\"" % (key, value))
                 execute(append, *args, host=host)
-            sys.exit()
-
-
 
     def install_all(self):
         self._execute_tasks(Stack.INIT)

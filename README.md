@@ -6,8 +6,8 @@ django-golive
 > - follow [me] on Twitter
 > - join the [Mailinglist]
 
-django-golive is focusing on the tasks executed on your hosts to deploy and operate a Django-powered site.
-For the most common Django-sites you have to create a virtualenv, setup a database, install python-modules from pip
+django-golive is focusing on the tasks executed on your servers to deploy and operate a Django-powered site.
+For the most common configurations you have to create a virtualenv, setup a database, install python-modules from pip
 and setup a webserver in front of a WSGI-process.
 
 All these steps is doing django-golive for you. All you have to do is to prepare your project, which takes less
@@ -57,7 +57,10 @@ Set your secrets
 
 Create settings file for environment
 
+> This step is needed only if different settings applies on the remote environment. e.g. `DEBUG = False`
+
     echo "from settings import *" > settings_ENVIRONMENT.py   # change ENVIRONMENT to your ENVIRONMENT_ID
+    echo "DEBUG = False" >> settings_ENVIRONMENT.py           # change ENVIRONMENT to your ENVIRONMENT_ID
 
 Deploy the rest
 
