@@ -1,24 +1,29 @@
+import hashlib
 import tempfile
 from fabric.operations import sudo, local
-from golive.layers.base import TemplateBasedSetup, DebianPackageMixin
+import time
+from golive.layers.base import TemplateBasedSetup, DebianPackageMixin, IPTablesSetup
 from golive.stacks.stack import config, environment
 
 
 class NginxSetup(DebianPackageMixin, TemplateBasedSetup):
     package_name = 'nginx'
+    configfile = 'golive/nginx.conf'
+
+    RULE = (None, config['DB_HOST'], 80)
 
     def init(self, update=True):
         DebianPackageMixin.init(self, update)
         self.execute(sudo, "update-rc.d nginx start")
-        self.set_filename("golive/nginx.conf")
+
+    def deploy(self):
+        self.set_filename(self.__class__.configfile)
         app_hosts = environment.get_role("APP_HOST").hosts
-        # TODO: backendid must be unique
-        # TODO: listen port must be unique or on ip
         self.set_context_data(
-            #SERVERNAME=environment.get_role("WEB_HOST").hosts[0],
             SERVERNAME=config['SERVERNAME'],
             USER=config['USER'],
-            APP_HOSTS=app_hosts
+            APP_HOSTS=app_hosts,
+            PORT=self._port()
         )
         # render
         file_data = self.load_and_render(self.filename, **self.context_data)
@@ -31,10 +36,24 @@ class NginxSetup(DebianPackageMixin, TemplateBasedSetup):
         temp.close()
 
         # send file
-        self.put_sudo(file_local, "/etc/nginx/sites-enabled/%s.conf" % config['SERVERNAME'])
+        nginx_configfile = config['SERVERNAME']
+        #self.put_sudo(file_local, "/etc/nginx/sites-enabled/%s.conf" % config['SERVERNAME'])
+        self.put_sudo(file_local, "/etc/nginx/sites-enabled/%s.conf" % nginx_configfile)
 
         # TODO: add autostart
         self.execute(sudo, "/etc/init.d/nginx reload")
         self.execute(sudo, "/etc/init.d/nginx start")
 
+        time.sleep(2)
+
+        IPTablesSetup._open(*self.__class__.RULE)
+
         print local("curl -I http://%s" % config['SERVERNAME'], capture=True)
+
+    def _port(self):
+        h = hashlib.sha256("%s_%s" % (config['PROJECT_NAME'], config['ENV_ID']))
+        return "8%s" % str(int(h.hexdigest(), base=16))[:3]
+
+
+class NginxProxySetup(NginxSetup):
+    configfile = 'golive/nginx_proxy.conf'

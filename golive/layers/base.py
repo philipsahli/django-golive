@@ -8,8 +8,9 @@ from fabric.operations import sudo, put, get, run
 from fabric.state import env
 from fabric.tasks import execute
 
-from django.conf import settings as django_settings
 from django.template import loader, Context
+import time
+import sys
 from golive.stacks.stack import config, environment
 
 
@@ -19,19 +20,20 @@ class BaseTask(object):
         # TODO: allow custom packages to be installed
         super(BaseTask, self).__init__()
 
-    def update(self):
-        #print "! not implemented !"
+    def deploy(self):
         pass
 
     def run(self, command, fail_silently=False):
-        #with hide('running'):
         if fail_silently:
             with settings(warn_only=True):
                 return execute(remote_run, command)
         return execute(remote_run, command)
 
     def sudo(self, command):
-        #with hide('running'):
+        return execute(sudo, command)
+
+    @classmethod
+    def sudo(cls, command):
         return execute(sudo, command)
 
     def mkdir(self, path):
@@ -43,7 +45,10 @@ class BaseTask(object):
             self.run("rm -rf %s" % path)
 
     def append(self, *args):
-        #with hide('running'):
+        execute(append, *args, use_sudo=True, hosts=env.hosts)
+
+    @classmethod
+    def append(cls, *args):
         execute(append, *args, use_sudo=True, hosts=env.hosts)
 
     def append_with_inituser(self, *args, **kwargs):
@@ -65,7 +70,7 @@ class BaseTask(object):
 
     def execute_once(self, f, *args):
         # only on first host
-        host=env['hosts'][0]
+        host = env['hosts'][0]
         return execute(f, *args, hosts=[host])
 
     def get(self, remote_filepath):
@@ -83,11 +88,50 @@ class BaseTask(object):
         print "No check actions defined"
 
 
+class TemplateBasedSetup(BaseTask):
+
+    def __init__(self):
+        self.context_data = {}
+        super(TemplateBasedSetup, self).__init__()
+
+    def set_filename(self, filename):
+        self.filename = filename
+
+    def set_local_filename(self, filename):
+        self.local_filename = filename
+
+    def set_destination_filename(self, filename):
+        self.destination_filename = filename
+
+    def load_and_render(self, template_name, **kwargs):
+        t = loader.get_template(template_name)
+        c = Context(kwargs)
+        self.content = t.render(c)
+        return self.content
+
+    def load_and_render_to_tempfile(self, template_name, **kwargs):
+        content = self.load_and_render(template_name, **kwargs)
+        # create temporary file
+        file_local = self._to_temporary_file(content)
+        return file_local
+
+    def set_context_data(self, **kwargs):
+        self.context_data = kwargs
+
+    def _to_temporary_file(self, file_data):
+        temp = tempfile.NamedTemporaryFile(delete=False)
+        file_local = temp.name
+        temp.write(file_data)
+        temp.flush()
+        temp.close()
+        return file_local
+
+
 class DjangoBaseTask():
     def manage(self, command):
         with prefix('. %s/.virtualenvs/%s/bin/activate' % (env.remote_home, env.project_name)):
             with cd("%s/code/%s" % (env.remote_home, env.project_name)):
-                self.run("python manage.py %s" % command)
+                self.run(". %s/.golive.rc && python manage.py %s" % (env.remote_home, command))
 
 
 class DebianPackageMixin():
@@ -105,7 +149,21 @@ class DebianPackageMixin():
         self.execute(sudo, "apt-get --purge autoremove -y -q")
 
 
-class BaseSetup(BaseTask, DebianPackageMixin):
+class PyPackageMixin():
+
+    def init(self, update=True):
+        if getattr(self.__class__, 'package_name', None):
+            with settings(warn_only=True):
+                if update:
+                    self.execute(sudo, "apt-get update")
+                return self.execute(sudo, "apt-get -y install %s" % self.__class__.package_name)
+
+    def remove(self):
+        self.execute(sudo, "apt-get remove -y %s" % self.__class__.package_name)
+        self.execute(sudo, "apt-get --purge autoremove -y -q")
+
+
+class BaseSetup(BaseTask, DebianPackageMixin, PyPackageMixin):
     ROLES = "ALL"
     # for deployment
     package_name = 'rsync git'
@@ -116,56 +174,116 @@ class BaseSetup(BaseTask, DebianPackageMixin):
 
     def init(self, update=True):
         DebianPackageMixin.init(self, update=True)
+
+    def deploy(self):
         self._setup_hostfile()
+        self._secure()
+
+    def _secure(self):
+        # setup iptables
+        iptables = IPTablesSetup()
+        # TODO: should only done once per host
+        #iptables.deploy()
+        #iptables.post_deploy()
+
+        # secure sshd
+        self._secure_sshd()
+
+    def _secure_sshd(self):
+        # don't allow authentication with passwords
+        self.append("/etc/ssh/sshd_config", "PasswordAuthentication no")
+        # reload
+        self.sudo("/etc/init.d/ssh reload")
 
     def _setup_hostfile(self):
+        """
+        Add every host in environment to the hostfile on the server(s).
+        """
         for host in environment.hosts:
             ip = socket.gethostbyname(host)
             self.append("/etc/hosts", "%s %s" % (ip, host))
 
 
-class TemplateBasedSetup(BaseTask):
+class IPTablesSetup(TemplateBasedSetup, BaseTask):
 
-    def set_filename(self, filename):
-        self.filename = filename
+    def __init__(self):
+        self.set_local_filename("golive/iptables/iptables_basic")
+        self.set_destination_filename("/home/%s/iptables_basic" % config['USER'])
+        super(IPTablesSetup, self).__init__()
 
-    def load_and_render(self, template_name, **kwargs):
-        t = loader.get_template(template_name)
-        c = Context(kwargs)
-        self.content = t.render(c)
-        return self.content
+    @classmethod
+    def _open(cls, source_ips, destination_ip, port):
+        # for service (http)
+        #self.set_local_filename("golive/iptables/iptables_service")
+        #self.context_data.update({'clients': source_ips})
+        #self.context_data.update({'PORT': port})
+        #content = self.load_and_render(self.local_filename, **self.context_data)
+        #open(tempfile, "a").write(content)
 
-    def set_context_data(self, **kwargs):
-        self.context_data = kwargs
+        if source_ips is None:
+            line = "iptables -A INPUT -d %s -p tcp --dport %s -j ACCEPT" % (destination_ip, port)
+            BaseTask.sudo(line)
+        else:
+            for source_ip in source_ips:
+                if destination_ip is None:
+                    line = "iptables -A INPUT -s %s -p tcp --dport %s -j ACCEPT" % (source_ip, port)
+                else:
+                    line = "iptables -A INPUT -s %s -d %s -p tcp --dport %s -j ACCEPT" % (source_ip, destination_ip, port)
+                BaseTask.sudo(line)
+
+        IPTablesSetup._persist()
+
+    def init(self):
+        self.deploy()
+
+    def deploy(self):
+        env.user = config['USER']
+
+        # create temporary local file
+        self.context_data.update({'IP': '10.211.55.26'})
+        tempfile = self.load_and_render_to_tempfile(self.local_filename, **self.context_data)
+
+        # add last
+        self.set_local_filename("golive/iptables/iptables_last")
+        content = self.load_and_render(self.local_filename, **self.context_data)
+        open(tempfile, "a").write(content)
+
+        # send file
+        self.put_sudo(tempfile, self.destination_filename)
+
+    def post_deploy(self):
+        self.sudo("iptables-restore < %s" % self.destination_filename)
+        IPTablesSetup._persist()
+
+        # postgres
+        #self._open(['10.211.55.26'], config['DB_HOST'], 5432)
+        #self._open(['10.211.55.27'], config['DB_HOST'], 32)
+        # wsgi proc
+        #self._open(['10.211.55.26'], config['DB_HOST'], 8528)
+        #self._open(['10.211.55.27'], config['DB_HOST'], 8359)
+
+    @classmethod
+    def _persist(cls):
+        BaseTask.sudo("iptables-save > /etc/iptables.up.rules")
+        BaseTask.append("/etc/network/if-pre-up.d/iptables",
+                        "#!/bin/bash\r\n/sbin/iptables-restore < /etc/iptables.up.rules")
 
 
 class SupervisorSetup(DebianPackageMixin, TemplateBasedSetup):
     package_name = 'supervisor'
 
-    def set_local_filename(self, filename):
-        self.local_filename = filename
-
-    def set_destination_filename(self, filename):
-        self.destination_filename = filename
-
     def init(self, update=True):
         DebianPackageMixin.init(self, update)
 
+    def deploy(self):
         # render
-        file_data = self.load_and_render(self.local_filename, **self.context_data)
-
-        # create temporary file
-        temp = tempfile.NamedTemporaryFile(delete=False)
-        file_local = temp.name
-        temp.write(file_data)
-        temp.flush()
-        temp.close()
+        tempfile = self.load_and_render_to_tempfile(self.local_filename, **self.context_data)
 
         # send file
-        self.put_sudo(file_local, self.destination_filename)
+        self.put_sudo(tempfile, self.destination_filename)
 
+    def post_deploy(self):
         # sed pattern
-        #self.execute(sudo, "HOSTNAME=`uname -n` ; sed \"s/%.*HOST.*%/$HOSTNAME/g\" -i " + self.destination_filename)
         # must be set to the interface for this domain or on a different port
         self.execute(sudo, "HOSTNAME='"+env.hosts[0]+"' ; sed \"s/%.*HOST.*%/$HOSTNAME/g\" -i " + self.destination_filename)
 
@@ -173,8 +291,9 @@ class SupervisorSetup(DebianPackageMixin, TemplateBasedSetup):
         self.execute(sudo, "pgrep supervisor || /etc/init.d/supervisor start")
 
         # reload supervisor
-        self.execute(sudo, "supervisorctl reread")
-        self.execute(sudo, "supervisorctl reload")
+        self.execute(sudo, "supervisorctl reread ; supervisorctl reload ")
+        #self.execute(sudo, "supervisorctl reload")
+        time.sleep(2)        # let supervisor do his work first
 
 
 class UserSetup(BaseTask):

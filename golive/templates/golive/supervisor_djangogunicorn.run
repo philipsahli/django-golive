@@ -1,0 +1,11 @@
+#!/bin/bash
+echo "Starting {{ APPNAME }}"
+
+# export the variables in .golive.rc
+for key_val in $(cat $HOME/.golive.rc); do
+   if [[ $key_val != "export" ]]; then
+      export $key_val
+   fi
+done
+
+exec {{ PYTHON }} {{ PROJECT_DIR }}/manage.py run_gunicorn --settings={{SETTINGS}} --bind=% HOST %:{{ PORT }} --access-logfile=/home/{{USER}}/log/gunicorn_access.log --error-logfile=/home/{{USER}}/log/gunicorn_error.log

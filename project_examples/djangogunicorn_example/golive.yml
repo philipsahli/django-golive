@@ -1,0 +1,21 @@
+CONFIG:
+  PLATFORM: DEDICATED
+  STACK: GUNICORNED
+
+ENVIRONMENTS:
+  DEFAULTS:
+    INIT_USER: fatrix
+    PROJECT_NAME: djangogunicorn_example
+    PUBKEY: /Volumes/Data/Users/fatrix/.ssh/id_dsa.pub
+    # TODO: add pip packages not in requirements
+    # TODO: add custom debian packages
+
+  SANDBOX:
+      SERVERNAME: golive-sandbox2
+      ROLES:
+         APP_HOST:
+           - golive-sandbox1
+         DB_HOST:
+           - golive-sandbox1
+         WEB_HOST:
+           - golive-sandbox1

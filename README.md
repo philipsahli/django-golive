@@ -10,8 +10,8 @@ django-golive is focusing on the tasks executed on your servers to deploy and op
 For the most common configurations you have to create a virtualenv, setup a database, install python-modules from pip
 and setup a webserver in front of a WSGI-process.
 
-All these steps is doing django-golive for you. All you have to do is to prepare your project, which takes less
-than 5 minutes. Then you are ready to enjoy django-golive and won't repeat yourself anymore!
+All these steps does django-golive for you. All you have to do is to prepare your project, which takes less
+than 5 minutes. Then you are ready to enjoy django-golive and repeat yourself even less!
 
 What brings django-golive?
 --------------------------
@@ -140,6 +140,15 @@ Builtin Components
 * Host file
 
     Adds entries for every host in environment to the file `/etc/hosts`.
+
+* Security
+
+    Sets `PasswordAuthentication` for sshd to no.
+
+* IPTables
+
+    Accept by default only connection from the internet to tcp/22 and tcp/80. The rest is blocked.
+    Per service (for example connections to postgres socket) rules are generated in the specific task.
 
 ***
 

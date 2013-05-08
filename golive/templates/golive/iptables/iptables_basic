@@ -1,0 +1,11 @@
+*filter
+:INPUT DROP
+:FORWARD ACCEPT
+:OUTPUT ACCEPT
+# basic
+-A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
+-A FORWARD -i eth0 -m state --state RELATED,ESTABLISHED -j ACCEPT
+-A OUTPUT -m state --state NEW,RELATED,ESTABLISHED -j ACCEPT
+-A INPUT -p tcp --dport 22 -j ACCEPT
+-A INPUT -p tcp --dport 80 -j ACCEPT
+-A INPUT -s 127.0.0.1 -j ACCEPT

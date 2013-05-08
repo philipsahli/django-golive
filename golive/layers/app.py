@@ -1,3 +1,4 @@
+import hashlib
 from fabric.context_managers import cd, prefix
 from fabric.contrib.project import rsync_project, os
 from fabric.decorators import runs_once
@@ -19,13 +20,10 @@ class PythonSetup(BaseTask, DebianPackageMixin):
                           (env.project_name,  env.project_name))
 
 
-class DataExporter(BaseTask):
-    pass
-
-
 class DjangoSetup(BaseTask, DjangoBaseTask):
     ROLES = "APP_HOST"
-    SUPERVISOR_TEMPLATE = "golive/supervisor_django.conf"
+    supervisor_conf_template = "golive/supervisor_django.conf"
+    supervisor_run_template = "golive/supervisor_django.run"
 
     def __init__(self):
         super(DjangoSetup, self).__init__()
@@ -36,18 +34,22 @@ class DjangoSetup(BaseTask, DjangoBaseTask):
         self.mkdir("/home/%s/code" % config['USER'])
         self.mkdir("/home/%s/log" % config['USER'])
         self.mkdir("/home/%s/static" % config['USER'])
-        self.update()
 
-    def update(self):
+    def deploy(self):
         env.remote_home = "/home/" + config['USER']
+        env.user = config['USER']
         env.project_name = config['PROJECT_NAME']
         self._configure_startup()
-        #self._stop()
+        self._stop()
         self._sync()
         self._install_requirements()
         self._syncdb()
         self._collecstatic()
         self._start()
+
+        #
+        RULE = (environment.get_role('WEB_HOST').hosts, None, self._port())
+        IPTablesSetup._open(*RULE)
         self._status()
 
     def _stop(self):
@@ -72,6 +74,8 @@ class DjangoSetup(BaseTask, DjangoBaseTask):
 
     def _configure_startup(self):
         supervisor = SupervisorSetup()
+
+        # supervisor config
         supervisor.set_context_data(PYTHON="/home/%s/.virtualenvs/%s/bin/python" % (
             config['USER'], config['PROJECT_NAME']),
             PROJECT_DIR="/home/%s/code/%s" % (config['USER'], config['PROJECT_NAME']),
@@ -79,47 +83,91 @@ class DjangoSetup(BaseTask, DjangoBaseTask):
             ENVIRONMENT=config['ENV_ID'],
             USER=config['USER'],
             APPNAME=self.supervisor_appname,
-            SETTINGS=self._settings_modulestring()
+            SETTINGS=self._settings_modulestring(),
+            PORT=self._port()
         )
 
-        supervisor.set_local_filename(self.__class__.SUPERVISOR_TEMPLATE)
+        supervisor.set_local_filename(self.__class__.supervisor_conf_template)
         supervisor.set_destination_filename("/etc/supervisor/conf.d/%s.conf" % self.supervisor_appname)
+
         supervisor.init()
+        supervisor.deploy()
+
+        # run wrapper script
+        supervisor.set_local_filename(self.__class__.supervisor_run_template)
+        supervisor.set_destination_filename("/home/%s/%s.run" % (config['USER'], self.supervisor_appname))
+        supervisor.init()
+        supervisor.deploy()
+        supervisor.post_deploy()
+
+    def _port(self):
+        """
+        Unique port creation for listener port.
+        """
+        base_int = 8
+        h = hashlib.sha256("%s_%s" % (config['PROJECT_NAME'], config['ENV_ID']))
+        return "%i%s" % (base_int, str(int(h.hexdigest(), base=16))[:3])
 
     def _sync(self):
+        """
+        Synchronize the project to the remote server(s).
+        """
         env.remote_home = "/home/" + env.user
         self.execute(rsync_project, "%s/code/" % env.remote_home, os.getcwd(), ["*.pyc", "*.log", "**.git/*"], True)
 
     def _install_requirements(self):
-        env.remote_home = "/home/" + config['USER']
         # needed for private repos, local keys get forwarded
         env.forward_agent = True
         env.user = config['USER']
+        env.remote_home = "/home/" + config['USER']
+
+        # from requirements.txt
         with prefix('. %s/.virtualenvs/%s/bin/activate' % (env.remote_home, env.project_name)):
             with cd("%s/code/%s" % (env.remote_home, env.project_name)):
                 self.execute(run, "pip install --download-cache=/var/cache/pip -r requirements.txt")
-                #self.execute(run, "pip install -r requirements.txt")
+
+        # from class variable
+        if hasattr(self.__class__, "python_packages"):
+            for package in self.__class__.python_packages.split(" "):
+                with prefix('. %s/.virtualenvs/%s/bin/activate' % (env.remote_home, env.project_name)):
+                    with cd("%s/code/%s" % (env.remote_home, env.project_name)):
+                        self.execute(run, "pip install --download-cache=/var/cache/pip %s" % package)
 
     @runs_once
     def _syncdb(self):
         self._prepare_db()
-        #self.manage("syncdb --noinput --settings=%s.settings_%s" % (config['PROJECT_NAME'], config['ENV_ID']))
         self.manage("syncdb --noinput --settings=%s" % self._settings_modulestring())
-        #self.manage("migrate --settings=settings_%s" % (config['ENV_ID']))
+        # TODO: migratedb if south installed
 
     def _prepare_db(self):
+        # get db node
+        #import pdb; pdb.set_trace()
+        db_host = config['DB_HOST']
+        # make db name
+        db_name = "%s_%s" % (django.conf.settings.DATABASES['default']['NAME'], config['ENV_ID'])
+        #db_password = os.environ['GOLIVE_DB_PASSWORD']
+        db_password = get_remote_envvar('GOLIVE_DB_PASSWORD', db_host)
+        # create user (role)
+        user = config['USER']
         with settings(warn_only=True):
-            # get db node
-            db_host = config['DB_HOST']
-            # make db name
-            #db_name = "%s" % (config['PROJECT_NAME'])
-            db_name = "%s_%s" % (django.conf.settings.DATABASES['default']['NAME'], config['ENV_ID'])
-            # create user (role)
-            self.execute_once(run, ("createuser -h %s -U postgres -l -S -d -R %s" % (db_host, config['USER'])))
+            execute(sudo, ("su - postgres -c \"createuser -U postgres -l -S -d -R %s\"" % (user)),
+                    hosts=[db_host])
+        # set password
+        sql = "ALTER USER %s WITH UNENCRYPTED PASSWORD '%s';" % (user, db_password)
+        self.execute_once(run, ("echo \"%s\" | sudo su - postgres -c psql" % sql))
+        with settings(warn_only=True):
             # create database
-            self.execute_once(run, ("createdb -U postgres -h %s -O %s -E UTF8 -T template0 %s" % (
-                db_host,
+            execute(sudo, ("su - postgres -c \"createdb -U postgres -O %s -E UTF8 -T template0 %s\"" % (
                 config['USER'],
-                db_name)))
+                db_name)), hosts=[db_host])
 
 
+def get_remote_envvar(var, host):
+    return execute(run, "echo $%s" % var, host=host).get(host, None)
+
+
+class DjangoSetupGunicorn(DjangoSetup):
+    python_packages = "gunicorn"
+
+    supervisor_conf_template = "golive/supervisor_djangogunicorn.conf"
+    supervisor_run_template = "golive/supervisor_djangogunicorn.run"

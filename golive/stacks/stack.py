@@ -14,9 +14,10 @@ class StackFactory(object):
 
         if "CLASSIC" in stackname:
             return Stack(stackname)
-        #elif stackname == "CLASSIC-GUNICORNED":
-        #    return Stack(stackname)
-
+        elif stackname == "GUNICORNED":
+            return Stack(stackname)
+        elif stackname == "GUNICELERY":
+            return Stack(stackname)
         else:
             raise Exception("Stack '%s' not found" % stackname)
 
@@ -114,7 +115,7 @@ class Stack(object):
 
     # Constants
     INIT = "init"
-    UPDATE = "update"
+    DEPLOY = "deploy"
     SET_VAR = "set_var"
     CONFIG = "golive.yml"
     DEFAULTS = "DEFAULTS"
@@ -206,14 +207,14 @@ class Stack(object):
         self._set_stack_config()
 
         if job == Stack.INIT:
-            self.install_all()
-        elif job == Stack.UPDATE:
+            self.initialize()
+        elif job == Stack.DEPLOY:
             if task is not None:
-                self.update(selected_task=task)
+                self.deploy(selected_task=task)
             elif role is not None:
-                self.update(selected_role=role)
+                self.deploy(selected_role=role)
             else:
-                self.update_all()
+                self.deploy_all()
         elif job == Stack.SET_VAR:
             self.set_var(full_args)
         else:
@@ -240,19 +241,19 @@ class Stack(object):
                 args = ("$HOME/.golive.rc", "export %s=\"%s\"" % (key, value))
                 execute(append, *args, host=host)
 
-    def install_all(self):
+    def initialize(self):
         self._execute_tasks(Stack.INIT)
 
-    def update_all(self):
-        self._execute_tasks(Stack.UPDATE)
+    def deploy_all(self):
+        self._execute_tasks(Stack.DEPLOY)
 
-    def update(self, selected_task=None, selected_role=None):
+    def deploy(self, selected_task=None, selected_role=None):
         if selected_task:
             self._cleanout_tasks(selected_task)
         if selected_role:
             self._cleanout_role(selected_task)
 
-        self._execute_tasks(Stack.UPDATE)
+        self._execute_tasks(Stack.DEPLOY)
 
     def _cleanout_role(self, selected_role):
         selected_roles = []

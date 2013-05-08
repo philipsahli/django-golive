@@ -1,3 +1,5 @@
+import StringIO
+import tempfile
 from django.test import TestCase
 import yaml
 from django.test.utils import override_settings
@@ -112,11 +114,38 @@ class StackFactoryTest(TestCase):
     def setUp(self):
         super(StackFactoryTest, self).setUp()
 
-        environment_configfile = open("golive.yml", 'r')
-        stackname = self.environment_config_temp = yaml.load(environment_configfile)['CONFIG']['STACK']
+        testconfig = """CONFIG:
+  PLATFORM: DEDICATED
+  STACK: CLASSIC
+
+ENVIRONMENTS:
+  DEFAULTS:
+    INIT_USER: fatrix
+    PROJECT_NAME: django_example
+    PUBKEY: /Volumes/Data/Users/fatrix/.ssh/id_dsa.pub
+    # TODO: add pip packages not in requirements
+    # TODO: add custom debian packages
+    #
+  SANDBOX:
+      SERVERNAME: golive-sandbox1
+      ROLES:
+         APP_HOST:
+           - golive-sandbox1
+           - golive-sandbox2
+         DB_HOST:
+           - golive-sandbox1
+         WEB_HOST:
+           - golive-sandbox1"""
+
+        f, environment_configfile = tempfile.mkstemp()
+        config = open(environment_configfile, 'w')
+        config.write(testconfig)
+        config.close()
+        config = open(environment_configfile, 'r')
+        stackname = self.environment_config_temp = yaml.load(config)['CONFIG']['STACK']
 
         self.stack = StackFactory.get(stackname)
-        self.stack.setup_environment("testing")
+        self.stack.setup_environment("sandbox")
 
     def test_stack_loaded(self):
         self.assertEqual(3, self.stack.role_count)
@@ -134,19 +163,20 @@ class StackFactoryTest(TestCase):
     def test_install_stack(self, mock_execute):
         mock_execute.return_value = "", "", True
         self.stack.do(Stack.INIT)
-        self.assertEqual(111, mock_execute.call_count)
+        self.assertEqual(62, mock_execute.call_count)
 
     @patch("fabric.tasks._execute")
     def test_update_stack(self, mock_execute):
         mock_execute.return_value = "", "", True
-        self.stack.do(Stack.UPDATE)
-        self.assertEqual(24, mock_execute.call_count)
+        self.stack.do(Stack.DEPLOY)
+        self.assertEqual(42, mock_execute.call_count)
 
     @patch("fabric.tasks._execute")
     def test_update_stack_task_selected(self, mock_execute):
         mock_execute.return_value = "", "", True
-        self.stack.do(Stack.UPDATE, task="golive.layers.app.DjangoSetup")
-        self.assertEqual(24, mock_execute.call_count)
+        self.stack.do(Stack.DEPLOY, task="golive.layers.app.DjangoSetup")
+        self.assertEqual(22, mock_execute.call_count)
+
 
 class ManagementCommandTest(TestCase):
     @patch("fabric.tasks._execute")
