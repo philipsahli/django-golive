@@ -1,71 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="36bdee0c-bf22-4598-9e83-7ee8f14882d7" name="Default" comment="" />
-    <list id="24a14a75-04e3-4638-a7b8-487406a929a7" name="add security feature" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/project_examples/django_example/django_example/__init__.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/project_examples/django_example/templates/__init__.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/project_examples/djangocelery_example/djangogunicorn_example/__init__.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/project_examples/djangocelery_example/templates/__init__.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/project_examples/djangogunicorn_example/djangogunicorn_example/__init__.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/project_examples/djangogunicorn_example/templates/__init__.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/project_examples/django_example/golive.yml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/project_examples/djangocelery_example/golive.yml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/project_examples/djangogunicorn_example/golive.yml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/golive/stacks/gunicelery.yaml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/project_examples/django_example/templates/index.html" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/project_examples/djangocelery_example/templates/index.html" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/project_examples/djangogunicorn_example/templates/index.html" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/golive/templates/golive/iptables/iptables_basic" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/golive/templates/golive/iptables/iptables_last" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/project_examples/django_example/manage.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/project_examples/djangocelery_example/manage.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/project_examples/djangogunicorn_example/manage.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/golive/templates/golive/nginx_proxy.conf" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/project_examples/django_example/requirements.txt" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/project_examples/djangocelery_example/requirements.txt" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/project_examples/djangogunicorn_example/requirements.txt" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/project_examples/django_example/django_example/settings.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/project_examples/djangocelery_example/djangogunicorn_example/settings.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/project_examples/djangogunicorn_example/djangogunicorn_example/settings.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/project_examples/django_example/django_example/settings_integration.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/project_examples/djangocelery_example/djangogunicorn_example/settings_integration.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/project_examples/djangogunicorn_example/djangogunicorn_example/settings_integration.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/project_examples/djangocelery_example/djangogunicorn_example/settings_sandbox.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/project_examples/django_example/django_example/settings_sandbox2.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/project_examples/djangocelery_example/djangogunicorn_example/settings_sandbox2.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/project_examples/djangogunicorn_example/djangogunicorn_example/settings_sandbox2.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/project_examples/django_example/django_example/settings_testing.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/project_examples/djangocelery_example/djangogunicorn_example/settings_testing.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/project_examples/djangogunicorn_example/djangogunicorn_example/settings_testing.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/golive/templates/golive/supervisor_django.run" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/golive/templates/golive/supervisor_djangogunicorn.conf" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/golive/templates/golive/supervisor_djangogunicorn.run" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/project_examples/django_example/django_example/urls.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/project_examples/djangocelery_example/djangogunicorn_example/urls.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/project_examples/djangogunicorn_example/djangogunicorn_example/urls.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/project_examples/django_example/django_example/wsgi.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/project_examples/djangocelery_example/djangogunicorn_example/wsgi.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/project_examples/djangogunicorn_example/djangogunicorn_example/wsgi.py" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/golive/management/commands/update.py" afterPath="$PROJECT_DIR$/golive/management/commands/deploy.py" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/golive/stacks/classic-gunicorned.yaml" afterPath="$PROJECT_DIR$/golive/stacks/gunicorned.yaml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.gitignore" afterPath="$PROJECT_DIR$/.gitignore" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/README.md" afterPath="$PROJECT_DIR$/README.md" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/golive/layers/app.py" afterPath="$PROJECT_DIR$/golive/layers/app.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/golive/layers/base.py" afterPath="$PROJECT_DIR$/golive/layers/base.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/golive/layers/cache.py" afterPath="$PROJECT_DIR$/golive/layers/cache.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/golive/layers/db.py" afterPath="$PROJECT_DIR$/golive/layers/db.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/misc.xml" afterPath="$PROJECT_DIR$/.idea/misc.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/golive/templates/golive/nginx.conf" afterPath="$PROJECT_DIR$/golive/templates/golive/nginx.conf" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/golive/stacks/stack.py" afterPath="$PROJECT_DIR$/golive/stacks/stack.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/golive/templates/golive/supervisor_django.conf" afterPath="$PROJECT_DIR$/golive/templates/golive/supervisor_django.conf" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/golive/tests.py" afterPath="$PROJECT_DIR$/golive/tests.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/golive/layers/web.py" afterPath="$PROJECT_DIR$/golive/layers/web.py" />
+    <list default="true" id="36bdee0c-bf22-4598-9e83-7ee8f14882d7" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="django-golive.iws" />
     <ignored path=".idea/workspace.xml" />
-    <file path="/Dummy.txt" changelist="36bdee0c-bf22-4598-9e83-7ee8f14882d7" time="1368048398058" ignored="false" />
+    <file path="/Dummy.txt" changelist="36bdee0c-bf22-4598-9e83-7ee8f14882d7" time="1368048418345" ignored="false" />
     <file path="/settings.py" changelist="36bdee0c-bf22-4598-9e83-7ee8f14882d7" time="1368047373694" ignored="false" />
     <file path="/app.py" changelist="36bdee0c-bf22-4598-9e83-7ee8f14882d7" time="1368045017661" ignored="false" />
     <file path="/README.md" changelist="36bdee0c-bf22-4598-9e83-7ee8f14882d7" time="1367859328734" ignored="false" />
@@ -383,10 +324,14 @@
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
       <changelist id="36bdee0c-bf22-4598-9e83-7ee8f14882d7" name="Default" comment="" />
-      <changelist id="24a14a75-04e3-4638-a7b8-487406a929a7" name="add security feature" comment="" />
       <created>1365840293748</created>
       <updated>1365840293748</updated>
     </task>
+    <task id="LOCAL-00001" summary="add security feature">
+      <created>1368048425471</created>
+      <updated>1368048425471</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TodoView" selected-index="0">
@@ -413,6 +358,7 @@
     <frame x="0" y="22" width="1280" height="733" extended-state="0" />
     <editor active="false" />
     <layout>
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
       <window_info id="Changes" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.5839874" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3292683" sideWeight="0.6584845" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
@@ -470,7 +416,7 @@
     <option name="MAXIMUM_HISTORY_ROWS" value="1000" />
     <option name="FORCE_NON_EMPTY_COMMENT" value="false" />
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="false" />
-    <option name="LAST_COMMIT_MESSAGE" />
+    <option name="LAST_COMMIT_MESSAGE" value="add security feature" />
     <option name="MAKE_NEW_CHANGELIST_ACTIVE" value="false" />
     <option name="OPTIMIZE_IMPORTS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_FILES_UP_TO_DATE_BEFORE_COMMIT" value="false" />
@@ -483,6 +429,7 @@
     <option name="UPDATE_GROUP_BY_CHANGELIST" value="false" />
     <option name="SHOW_FILE_HISTORY_AS_TREE" value="false" />
     <option name="FILE_HISTORY_SPLITTER_PROPORTION" value="0.6" />
+    <MESSAGE value="add security feature" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager />
