@@ -1,5 +1,4 @@
 # Django settings for django_example project.
-import os
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -13,7 +12,7 @@ MANAGERS = ADMINS
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': 'djangogunicorn_example',                      # Or path to database file if using sqlite3.
+        'NAME': 'django_example',                      # Or path to database file if using sqlite3.
         # The following settings are not used with sqlite3:
         'USER': '',
         'PASSWORD': '',
@@ -103,18 +102,15 @@ MIDDLEWARE_CLASSES = (
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
-ROOT_URLCONF = 'djangogunicorn_example.urls'
+ROOT_URLCONF = 'django_example.urls'
 
 # Python dotted path to the WSGI application used by Django's runserver.
-WSGI_APPLICATION = 'djangogunicorn_example.wsgi.application'
-
-PROJECT_ROOT = os.path.dirname(__file__)+"/.."
+WSGI_APPLICATION = 'django_example.wsgi.application'
 
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-    os.path.join(PROJECT_ROOT, "templates")
 )
 
 INSTALLED_APPS = (
@@ -128,7 +124,6 @@ INSTALLED_APPS = (
     # 'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
-    'gunicorn'
 )
 
 if DEBUG:

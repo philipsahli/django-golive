@@ -1,0 +1,11 @@
+#!/bin/bash
+echo "Starting {{ APPNAME }}"
+
+# export the variables in .golive.rc
+for key_val in $(cat $HOME/.golive.rc); do
+   if [[ $key_val != "export" ]]; then
+      export $key_val
+   fi
+done
+
+exec {{ PYTHON }} {{ PROJECT_DIR }}/manage.py celery worker --loglevel=debug --settings={{SETTINGS}}
