@@ -8,4 +8,4 @@ for key_val in $(cat $HOME/.golive.rc); do
    fi
 done
 
-exec {{ PYTHON }} {{ PROJECT_DIR }}/manage.py celery worker --loglevel=debug --settings={{SETTINGS}}
+exec {{ PYTHON }} {{ PROJECT_DIR }}/manage.py celerycam --loglevel=debug --settings={{SETTINGS}}

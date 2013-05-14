@@ -20,7 +20,6 @@ from golive.stacks.stack import config, environment
 class PostgresSetup(BaseTask, DjangoBaseTask, DebianPackageMixin):
     package_name = 'postgresql libpq-dev'
     ROLES = "DB_HOST"
-
     RULE = (environment.hosts, config['DB_HOST'], 5432)
 
     def init(self, update=True):
@@ -34,7 +33,7 @@ class PostgresSetup(BaseTask, DjangoBaseTask, DebianPackageMixin):
         self.append("/etc/postgresql/8.4/main/postgresql.conf", "listen_addresses = '*'")
         self.execute(run, "sudo /etc/init.d/postgresql restart")
 
-        IPTablesSetup._open(*self.__class__.RULE)
+        IPTablesSetup._open(self.__class__.RULE)
 
     def _allowed_hosts(self):
         return [socket.gethostbyname(x) for x in environment.get_role('WEB_HOST').hosts]

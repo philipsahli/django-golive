@@ -46,7 +46,7 @@ class NginxSetup(DebianPackageMixin, TemplateBasedSetup):
 
         time.sleep(2)
 
-        IPTablesSetup._open(*self.__class__.RULE)
+        IPTablesSetup._open(self.__class__.RULE)
 
         print local("curl -I http://%s" % config['SERVERNAME'], capture=True)
 

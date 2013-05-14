@@ -147,12 +147,13 @@ Builtin Components
 
 * IPTables
 
-    Accept by default only connection from the internet to tcp/22 and tcp/80. The rest is blocked.
-    Per service (for example connections to postgres socket) rules are generated in the specific task.
+    Accept by default only connection to port tcp/22 from all hosts in the internet. All other services are denied.
+    Per service (for example public or communication within application (i.e. to database, caching service) rules are generated in the specific task.
 
 ***
 
 ### golive.layers.base.UserSetup
+
 * User creation
 
     Creates the user with the name `USER` specified in `golive.yml` of if not specified as `PROJECT_NAME`_`ENVIRONMENT`.
@@ -169,6 +170,10 @@ Builtin Components
 
     Installs the package nginx and then creates out of `templates/golive/nginx.conf` a configuration file.
     The file is uploaded to the directory `/etc/nginx/sites-enabled/app.conf`.
+
+* IPTables
+
+    Accept connections to port tcp/80 from the internet.
 
 <!-- TODO: ### golive.layers.cache.RedisSetup
 - Cachehost (Redis Key/Value-Store for Caching)
@@ -192,6 +197,10 @@ Builtin Components
 
     - Allow access from every host in the role `WEB_HOST`.
     - Listen on all network interfaces (`0.0.0.0`).
+
+* IPTables
+
+    Accept connections from all hosts within environment to port tcp/5432.
 
 ***
 

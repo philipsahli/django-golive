@@ -25,9 +25,14 @@ class DjangoSetup(BaseTask, DjangoBaseTask):
     supervisor_conf_template = "golive/supervisor_django.conf"
     supervisor_run_template = "golive/supervisor_django.run"
 
+    #supervisor_appname = None
+
     def __init__(self):
         super(DjangoSetup, self).__init__()
+        self.set_supervisor_appname()
         # TODO: create link from home-folder to the configfile
+
+    def set_supervisor_appname(self):
         self.supervisor_appname = "%s_%s" % (config['PROJECT_NAME'], config['ENV_ID'])
 
     def init(self):
@@ -39,7 +44,10 @@ class DjangoSetup(BaseTask, DjangoBaseTask):
         env.remote_home = "/home/" + config['USER']
         env.user = config['USER']
         env.project_name = config['PROJECT_NAME']
+        # startup
+        #self.set_supervisor_appname()
         self._configure_startup()
+
         self._stop()
         self._sync()
         self._install_requirements()
@@ -49,8 +57,20 @@ class DjangoSetup(BaseTask, DjangoBaseTask):
 
         #
         RULE = (environment.get_role('WEB_HOST').hosts, None, self._port())
-        IPTablesSetup._open(*RULE)
+        IPTablesSetup._open(RULE)
         self._status()
+
+    def update(self):
+        env.remote_home = "/home/" + config['USER']
+        env.user = config['USER']
+        env.project_name = config['PROJECT_NAME']
+
+        self._stop()
+        self._sync()
+        self._install_requirements()
+        self._syncdb()
+        self._collecstatic()
+        self._start()
 
     def _stop(self):
         self.execute(sudo, "supervisorctl stop %s" % self.supervisor_appname)
@@ -141,11 +161,10 @@ class DjangoSetup(BaseTask, DjangoBaseTask):
 
     def _prepare_db(self):
         # get db node
-        #import pdb; pdb.set_trace()
         db_host = config['DB_HOST']
         # make db name
-        db_name = "%s_%s" % (django.conf.settings.DATABASES['default']['NAME'], config['ENV_ID'])
-        #db_password = os.environ['GOLIVE_DB_PASSWORD']
+        #db_name = "%s_%s" % (django.conf.settings.DATABASES['default']['NAME'], config['ENV_ID'])
+        db_name = "%s_%s" % (config['PROJECT_NAME'], config['ENV_ID'])
         db_password = get_remote_envvar('GOLIVE_DB_PASSWORD', db_host)
         # create user (role)
         user = config['USER']
@@ -153,7 +172,7 @@ class DjangoSetup(BaseTask, DjangoBaseTask):
             execute(sudo, ("su - postgres -c \"createuser -U postgres -l -S -d -R %s\"" % (user)),
                     hosts=[db_host])
         # set password
-        sql = "ALTER USER %s WITH UNENCRYPTED PASSWORD '%s';" % (user, db_password)
+        sql = "ALTER USER %s WITH ENCRYPTED PASSWORD '%s';" % (user, db_password)
         self.execute_once(run, ("echo \"%s\" | sudo su - postgres -c psql" % sql))
         with settings(warn_only=True):
             # create database
@@ -168,6 +187,100 @@ def get_remote_envvar(var, host):
 
 class DjangoSetupGunicorn(DjangoSetup):
     python_packages = "gunicorn"
-
     supervisor_conf_template = "golive/supervisor_djangogunicorn.conf"
     supervisor_run_template = "golive/supervisor_djangogunicorn.run"
+
+
+class WorkerSetup(DjangoSetup):
+    supervisor_conf_template = "golive/supervisor_celery_worker.conf"
+    supervisor_run_template = "golive/supervisor_celery_worker.run"
+
+    def set_supervisor_appname(self):
+        super(WorkerSetup, self).set_supervisor_appname()
+        self.supervisor_appname += "_worker"
+
+
+class WorkerCamSetup(DjangoSetup):
+    supervisor_conf_template = "golive/supervisor_celery_worker_cam.conf"
+    supervisor_run_template = "golive/supervisor_celery_worker_cam.run"
+
+    def set_supervisor_appname(self):
+        super(WorkerCamSetup, self).set_supervisor_appname()
+        self.supervisor_appname += "_worker_cam"
+
+        #def _configure_startup(self):
+    #    supervisor = SupervisorSetup()
+#
+#        # supervisor config
+#        supervisor.set_context_data(PYTHON="/home/%s/.virtualenvs/%s/bin/python" % (
+#            config['USER'], config['PROJECT_NAME']),
+#                                    PROJECT_DIR="/home/%s/code/%s" % (config['USER'], config['PROJECT_NAME']),
+#                                    PROJECT=config['PROJECT_NAME'],
+#                                    ENVIRONMENT=config['ENV_ID'],
+#                                    USER=config['USER'],
+#                                    APPNAME=self.supervisor_appname,
+#                                    SETTINGS=self._settings_modulestring()
+#        )
+#
+#        supervisor.set_local_filename(self.__class__.supervisor_conf_template)
+#        supervisor.set_destination_filename("/etc/supervisor/conf.d/%s.conf" % self.supervisor_appname)
+#
+#        supervisor.init()
+#        supervisor.deploy()
+#
+#        # run wrapper script
+#        supervisor.set_local_filename(self.__class__.supervisor_run_template)
+#        supervisor.set_destination_filename("/home/%s/%s.run" % (config['USER'], self.supervisor_appname))
+#        supervisor.init()
+#        supervisor.deploy()
+#        supervisor.post_deploy()
+
+
+class RabbitMqSetup(BaseTask, DebianPackageMixin):
+    # TODO: move to a queue module
+    package_name = "rabbitmq-server"
+    GUEST_USER = "guest"
+    RABBITMQ_CONFIGFILE = "/etc/rabbitmq/rabbitmq.config"
+    RULE = [
+        (environment.hosts, None, "9101:9105"),
+        (environment.hosts, None, "4369"),
+        (environment.hosts, None, "5672"),
+        (environment.hosts, None, "8612")
+    ]
+
+    def init(self, update=True):
+        # add repo for rabbitmq
+        self._add_repo()
+        self.sudo("apt-get update")
+
+        DebianPackageMixin.init(self, update)
+        IPTablesSetup._open(self.__class__.RULE)
+
+        self._set_listen_port()
+
+        self._delete_user(self.__class__.GUEST_USER)
+
+    def deploy(self):
+        self._create_user()
+
+    def _set_listen_port(self):
+        self.append(self.__class__.RABBITMQ_CONFIGFILE,
+                    "[{kernel, [ {inet_dist_listen_min, 9100}, {inet_dist_listen_max, 9105} ]}].")
+
+    def _add_repo(self):
+        # as described at http://www.rabbitmq.com/install-debian.html
+        self.append("/etc/apt/sources.list", "deb http://www.rabbitmq.com/debian/ testing main")
+        self.sudo("wget http://www.rabbitmq.com/rabbitmq-signing-key-public.asc")
+        self.sudo("apt-key add rabbitmq-signing-key-public.asc")
+
+    def _create_user(self):
+        username = get_remote_envvar('GOLIVE_BROKER_USER', environment.get_role("QUEUE_HOST").hosts[0])
+        password = get_remote_envvar('GOLIVE_BROKER_PASSWORD', environment.get_role("QUEUE_HOST").hosts[0])
+        with settings(warn_only=True):
+            self.sudo("rabbitmqctl add_user %s %s" % (username, password))
+            self.sudo("rabbitmqctl set_permissions -p / %s \".*\" \".*\" \".*\"" % username)
+        # TODO: create vhost
+
+    def _delete_user(self, username):
+        with settings(warn_only=True):
+            self.sudo("rabbitmqctl delete_user %s" % username)

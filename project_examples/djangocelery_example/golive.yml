@@ -19,3 +19,7 @@ ENVIRONMENTS:
            - golive-sandbox1
          WEB_HOST:
            - golive-sandbox1
+         QUEUE_HOST:
+           - golive-sandbox1
+         WORKER_HOST:
+           - golive-sandbox1

@@ -10,7 +10,6 @@ from fabric.tasks import execute
 
 from django.template import loader, Context
 import time
-import sys
 from golive.stacks.stack import config, environment
 
 
@@ -21,6 +20,12 @@ class BaseTask(object):
         super(BaseTask, self).__init__()
 
     def deploy(self):
+        pass
+
+    def init(self):
+        pass
+
+    def update(self):
         pass
 
     def run(self, command, fail_silently=False):
@@ -212,7 +217,7 @@ class IPTablesSetup(TemplateBasedSetup, BaseTask):
         super(IPTablesSetup, self).__init__()
 
     @classmethod
-    def _open(cls, source_ips, destination_ip, port):
+    def _open(cls, rules):
         # for service (http)
         #self.set_local_filename("golive/iptables/iptables_service")
         #self.context_data.update({'clients': source_ips})
@@ -220,6 +225,16 @@ class IPTablesSetup(TemplateBasedSetup, BaseTask):
         #content = self.load_and_render(self.local_filename, **self.context_data)
         #open(tempfile, "a").write(content)
 
+        if isinstance(rules, list):
+            for rule in rules:
+                cls._rule(*rule)
+        else:
+            cls._rule(*rules)
+
+        IPTablesSetup._persist()
+
+    @classmethod
+    def _rule(cls, source_ips, destination_ip, port):
         if source_ips is None:
             line = "iptables -A INPUT -d %s -p tcp --dport %s -j ACCEPT" % (destination_ip, port)
             BaseTask.sudo(line)
@@ -230,8 +245,6 @@ class IPTablesSetup(TemplateBasedSetup, BaseTask):
                 else:
                     line = "iptables -A INPUT -s %s -d %s -p tcp --dport %s -j ACCEPT" % (source_ip, destination_ip, port)
                 BaseTask.sudo(line)
-
-        IPTablesSetup._persist()
 
     def init(self):
         self.deploy()
@@ -292,8 +305,7 @@ class SupervisorSetup(DebianPackageMixin, TemplateBasedSetup):
 
         # reload supervisor
         self.execute(sudo, "supervisorctl reread ; supervisorctl reload ")
-        #self.execute(sudo, "supervisorctl reload")
-        time.sleep(2)        # let supervisor do his work first
+        time.sleep(5)        # let supervisor do his work first
 
 
 class UserSetup(BaseTask):
@@ -330,6 +342,7 @@ class UserSetup(BaseTask):
                 self.execute(sudo, "chmod 600 /home/%s/.golive.rc" % user)
                 self.execute(sudo, "chown %s:%s /home/%s/.golive.rc" % (user, user, user))
                 self.append("/home/%s/.bashrc" % user, ". .golive.rc")
+                self.append("/home/%s/.bash_profile" % user, ". .golive.rc")
 
         # setup ssh pub-auth for user
         pubkey_file = config['PUBKEY']

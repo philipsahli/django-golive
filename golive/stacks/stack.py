@@ -116,6 +116,7 @@ class Stack(object):
     # Constants
     INIT = "init"
     DEPLOY = "deploy"
+    UPDATE = "update"
     SET_VAR = "set_var"
     CONFIG = "golive.yml"
     DEFAULTS = "DEFAULTS"
@@ -215,6 +216,8 @@ class Stack(object):
                 self.deploy(selected_role=role)
             else:
                 self.deploy_all()
+        elif job == Stack.UPDATE:
+            self.update()
         elif job == Stack.SET_VAR:
             self.set_var(full_args)
         else:
@@ -234,11 +237,11 @@ class Stack(object):
 
             if defined[host]:
                 # we have to sed the line
-                args = ("$HOME/.golive.rc", "export %s=.*$" % key, "export %s=\"%s\"" % (key, value))
+                args = ("$HOME/.golive.rc", "export %s=.*$" % key, "export %s=%s" % (key, value))
                 execute(sed, *args, host=host)
             else:
                 # append it
-                args = ("$HOME/.golive.rc", "export %s=\"%s\"" % (key, value))
+                args = ("$HOME/.golive.rc", "export %s=%s" % (key, value))
                 execute(append, *args, host=host)
 
     def initialize(self):
@@ -246,6 +249,9 @@ class Stack(object):
 
     def deploy_all(self):
         self._execute_tasks(Stack.DEPLOY)
+
+    def update(self):
+        self._execute_tasks(Stack.UPDATE)
 
     def deploy(self, selected_task=None, selected_role=None):
         if selected_task:
@@ -294,10 +300,14 @@ class Stack(object):
                     print "---------- "
                     print str(task)
                     print "---------- "
-                    task_class = task._load_module()
-                    task_obj = task_class()
-                    method_impl = getattr(task_obj, method)
-                    method_impl()
+                    try:
+                        task_class = task._load_module()
+                        task_obj = task_class()
+                        method_impl = getattr(task_obj, method)
+                        method_impl()
+                    except UnboundLocalError:
+                        print "Task %s not found" % task.module_string
+                        sys.exit(1)
                 print ""
 
     def _prepare_env(self, role):

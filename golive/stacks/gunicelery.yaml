@@ -18,3 +18,12 @@ ROLES:
        - golive.layers.base.BaseSetup
        - golive.layers.app.PythonSetup
        - golive.layers.app.DjangoSetupGunicorn
+    QUEUE_HOST:
+      ORDER: 4
+      TASKS:
+       - golive.layers.app.RabbitMqSetup
+    WORKER_HOST:
+      ORDER: 5
+      TASKS:
+       - golive.layers.app.WorkerSetup
+       - golive.layers.app.WorkerCamSetup
