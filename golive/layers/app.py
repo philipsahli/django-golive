@@ -5,7 +5,7 @@ from fabric.decorators import runs_once
 from fabric.operations import run
 from fabric.state import env
 from base import *
-from golive.stacks.stack import config
+from golive.stacks.stack import config, environment
 
 import django
 
@@ -241,6 +241,7 @@ class RabbitMqSetup(BaseTask, DebianPackageMixin):
     package_name = "rabbitmq-server"
     GUEST_USER = "guest"
     RABBITMQ_CONFIGFILE = "/etc/rabbitmq/rabbitmq.config"
+
     RULE = [
         (environment.hosts, None, "9101:9105"),
         (environment.hosts, None, "4369"),

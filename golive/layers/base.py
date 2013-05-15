@@ -4,7 +4,7 @@ import sys
 from fabric.api import run as remote_run
 from fabric.context_managers import prefix, cd, settings, hide
 from fabric.contrib.files import exists, append
-from fabric.operations import sudo, put, get, run
+from fabric.operations import sudo, put, get
 from fabric.state import env
 from fabric.tasks import execute
 
@@ -205,6 +205,7 @@ class BaseSetup(BaseTask, DebianPackageMixin, PyPackageMixin):
         """
         Add every host in environment to the hostfile on the server(s).
         """
+        from golive.stacks.stack import config, environment
         for host in environment.hosts:
             ip = golive.utils.resolve_host(host)
             self.append("/etc/hosts", "%s %s" % (ip, host))
@@ -215,6 +216,7 @@ class BaseSetup(BaseTask, DebianPackageMixin, PyPackageMixin):
 class IPTablesSetup(TemplateBasedSetup, BaseTask):
 
     def __init__(self):
+        from golive.stacks.stack import config, environment
         self.set_local_filename("golive/iptables/iptables_basic")
         self.set_destination_filename("/home/%s/iptables_basic" % config['USER'])
         super(IPTablesSetup, self).__init__()
@@ -323,7 +325,7 @@ class UserSetup(BaseTask):
 
     def init(self):
         # create baseuser
-        from golive.stacks.stack import config
+        from golive.stacks.stack import config, environment
         env.user = config['INIT_USER']
         env.project_name = config['PROJECT_NAME']
         user = config['USER']
@@ -359,6 +361,10 @@ class UserSetup(BaseTask):
             self.sudo("chmod 600 /home/%s/.ssh/authorized_keys2" % user)
             self.sudo("chown %s:%s /home/%s/.ssh/authorized_keys2" % (user, user, user))
 
-        self.append("/home/%s/.ssh/authorized_keys2" % user, open(pubkey_file, 'r').readline())
+        #self.append("/home/%s/.ssh/authorized_keys2" % user, open(pubkey_file, 'r').readline())
+        self.append("/home/%s/.ssh/authorized_keys2" % user, self.readfile(pubkey_file))
 
         env.user = config['USER']
+
+    def readfile(self, filename):
+        return open(filename, 'r').readline()

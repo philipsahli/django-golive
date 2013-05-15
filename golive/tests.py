@@ -2,7 +2,7 @@ import tempfile
 from django.test import TestCase
 import yaml
 from mock import patch
-import golive
+from golive.layers.base import UserSetup
 from golive.stacks.stack import StackFactory, Stack
 
 
@@ -16,7 +16,7 @@ ENVIRONMENTS:
     DEFAULTS:
         INIT_USER: fatrix
         PROJECT_NAME: django_example
-        PUBKEY: /Volumes/Data/Users/fatrix/.ssh/id_dsa.pub
+        PUBKEY: $HOME/user.pub
         # TODO: add pip packages not in requirements
         # TODO: add custom debian packages
         #
@@ -160,6 +160,8 @@ class StackFactoryTest(TestCase):
         self.stack = StackFactory.get("CLASSIC")
         self.stack.setup_environment("testing")
 
+        # called in stack.do, otherwise environment var is missing
+        self.stack._set_stack_config()
 
     def test_stack_loaded(self):
         self.assertEqual(3, self.stack.role_count)
@@ -174,8 +176,10 @@ class StackFactoryTest(TestCase):
         self.assertEqual(1, len(self.stack.hosts_for_role("WEB_HOST")))
 
     @patch("fabric.tasks._execute")
-    def test_install_stack(self, mock_execute):
+    @patch.object(UserSetup, "readfile")
+    def test_install_stack(self, mock_readfile, mock_execute):
         mock_execute.return_value = "", "", True
+        mock_readfile.return_value = "filecontent"
         self.stack.do(Stack.INIT)
         self.assertEqual(65, mock_execute.call_count)
 
