@@ -1,5 +1,5 @@
-import socket
 import tempfile
+import sys
 
 from fabric.api import run as remote_run
 from fabric.context_managers import prefix, cd, settings, hide
@@ -11,6 +11,7 @@ from fabric.tasks import execute
 from django.template import loader, Context
 import time
 from golive.stacks.stack import config, environment
+import golive.utils
 
 
 class BaseTask(object):
@@ -205,8 +206,10 @@ class BaseSetup(BaseTask, DebianPackageMixin, PyPackageMixin):
         Add every host in environment to the hostfile on the server(s).
         """
         for host in environment.hosts:
-            ip = socket.gethostbyname(host)
+            ip = golive.utils.resolve_host(host)
             self.append("/etc/hosts", "%s %s" % (ip, host))
+
+
 
 
 class IPTablesSetup(TemplateBasedSetup, BaseTask):
@@ -305,7 +308,8 @@ class SupervisorSetup(DebianPackageMixin, TemplateBasedSetup):
 
         # reload supervisor
         self.execute(sudo, "supervisorctl reread ; supervisorctl reload ")
-        time.sleep(5)        # let supervisor do his work first
+        if "test" not in sys.argv:
+            time.sleep(5)        # let supervisor do his work first
 
 
 class UserSetup(BaseTask):

@@ -1,11 +1,43 @@
-import StringIO
 import tempfile
 from django.test import TestCase
 import yaml
-from django.test.utils import override_settings
 from mock import patch
+import golive
 from golive.stacks.stack import StackFactory, Stack
 
+
+def read_userconfigfile():
+
+    testconfig = """CONFIG:
+    PLATFORM: DEDICATED
+    STACK: CLASSIC
+
+ENVIRONMENTS:
+    DEFAULTS:
+        INIT_USER: fatrix
+        PROJECT_NAME: django_example
+        PUBKEY: /Volumes/Data/Users/fatrix/.ssh/id_dsa.pub
+        # TODO: add pip packages not in requirements
+        # TODO: add custom debian packages
+        #
+    TESTING:
+        SERVERNAME: golive-sandbox1
+        ROLES:
+            APP_HOST:
+                - testbox1
+            DB_HOST:
+                - testbox1
+            WEB_HOST:
+                - testbox1"""
+
+    f, environment_configfile = tempfile.mkstemp()
+    config = open(environment_configfile, 'w')
+    config.write(testconfig)
+    config.close()
+    config1 = open(environment_configfile, 'r')
+
+    # return created file
+    return config1
 
 # class TaskCollectorTest(TestCase):
 #     DEPLOYMENT = {
@@ -110,48 +142,30 @@ from golive.stacks.stack import StackFactory, Stack
 #         task_manager.run()
 #
 
+
 class StackFactoryTest(TestCase):
-    def setUp(self):
+
+    @patch.object(Stack, "_read_userconfigfile")
+    def setUp(self, mock_method):
+    #def setUp(self, mock_method):
         super(StackFactoryTest, self).setUp()
 
-        testconfig = """CONFIG:
-  PLATFORM: DEDICATED
-  STACK: CLASSIC
+        #print golive.utils.resolve_host("asdf")
 
-ENVIRONMENTS:
-  DEFAULTS:
-    INIT_USER: fatrix
-    PROJECT_NAME: django_example
-    PUBKEY: /Volumes/Data/Users/fatrix/.ssh/id_dsa.pub
-    # TODO: add pip packages not in requirements
-    # TODO: add custom debian packages
-    #
-  SANDBOX:
-      SERVERNAME: golive-sandbox1
-      ROLES:
-         APP_HOST:
-           - golive-sandbox1
-           - golive-sandbox2
-         DB_HOST:
-           - golive-sandbox1
-         WEB_HOST:
-           - golive-sandbox1"""
+        mock_method.return_value = read_userconfigfile()
+        #mock_method_resolve.return_value = "1.2.3.4"
 
-        f, environment_configfile = tempfile.mkstemp()
-        config = open(environment_configfile, 'w')
-        config.write(testconfig)
-        config.close()
-        config = open(environment_configfile, 'r')
-        stackname = self.environment_config_temp = yaml.load(config)['CONFIG']['STACK']
+        self.environment_config_temp = yaml.load(read_userconfigfile())['CONFIG']['STACK']
 
-        self.stack = StackFactory.get(stackname)
-        self.stack.setup_environment("sandbox")
+        self.stack = StackFactory.get("CLASSIC")
+        self.stack.setup_environment("testing")
+
 
     def test_stack_loaded(self):
         self.assertEqual(3, self.stack.role_count)
         self.assertEqual(4, len(self.stack.tasks_for_role("APP_HOST")))
         self.assertEqual(4, len(self.stack.get_role("APP_HOST").tasks))
-        self.assertEqual(2, len(self.stack.hosts_for_role("APP_HOST")))
+        self.assertEqual(1, len(self.stack.hosts_for_role("APP_HOST")))
 
         self.assertEqual(3, len(self.stack.get_role("DB_HOST").tasks))
         self.assertEqual(1, len(self.stack.hosts_for_role("DB_HOST")))
@@ -163,19 +177,21 @@ ENVIRONMENTS:
     def test_install_stack(self, mock_execute):
         mock_execute.return_value = "", "", True
         self.stack.do(Stack.INIT)
-        self.assertEqual(62, mock_execute.call_count)
+        self.assertEqual(65, mock_execute.call_count)
 
     @patch("fabric.tasks._execute")
-    def test_update_stack(self, mock_execute):
+    @patch("golive.utils.resolve_host")
+    def test_update_stack(self, mock_method_resolve, mock_execute):
+        mock_method_resolve.return_value = "1.2.3.4"
         mock_execute.return_value = "", "", True
         self.stack.do(Stack.DEPLOY)
-        self.assertEqual(42, mock_execute.call_count)
+        self.assertEqual(55, mock_execute.call_count)
 
     @patch("fabric.tasks._execute")
     def test_update_stack_task_selected(self, mock_execute):
         mock_execute.return_value = "", "", True
         self.stack.do(Stack.DEPLOY, task="golive.layers.app.DjangoSetup")
-        self.assertEqual(22, mock_execute.call_count)
+        self.assertEqual(20, mock_execute.call_count)
 
 
 class ManagementCommandTest(TestCase):
@@ -183,4 +199,5 @@ class ManagementCommandTest(TestCase):
     def test_stack_loaded(self, mock_execute):
         mock_execute.return_value = "", "", True
         pass
+
 

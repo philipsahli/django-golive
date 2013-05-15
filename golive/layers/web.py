@@ -1,5 +1,6 @@
 import hashlib
 import tempfile
+import sys
 from fabric.operations import sudo, local
 import time
 from golive.layers.base import TemplateBasedSetup, DebianPackageMixin, IPTablesSetup
@@ -44,11 +45,13 @@ class NginxSetup(DebianPackageMixin, TemplateBasedSetup):
         self.execute(sudo, "/etc/init.d/nginx reload")
         self.execute(sudo, "/etc/init.d/nginx start")
 
-        time.sleep(2)
-
         IPTablesSetup._open(self.__class__.RULE)
 
-        print local("curl -I http://%s" % config['SERVERNAME'], capture=True)
+        if "test" not in sys.argv:
+            time.sleep(2)
+
+        if "test" not in sys.argv:
+            print local("curl -I http://%s" % config['SERVERNAME'], capture=True)
 
     def _port(self):
         h = hashlib.sha256("%s_%s" % (config['PROJECT_NAME'], config['ENV_ID']))

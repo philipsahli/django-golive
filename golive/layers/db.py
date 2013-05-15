@@ -1,7 +1,6 @@
-from django.conf import settings
 import datetime
-import socket
 from fabric.operations import run
+from golive import utils
 from golive.layers.base import DjangoBaseTask, DebianPackageMixin, BaseTask, IPTablesSetup
 from golive.stacks.stack import config, environment
 
@@ -36,7 +35,7 @@ class PostgresSetup(BaseTask, DjangoBaseTask, DebianPackageMixin):
         IPTablesSetup._open(self.__class__.RULE)
 
     def _allowed_hosts(self):
-        return [socket.gethostbyname(x) for x in environment.get_role('WEB_HOST').hosts]
+        return [utils.resolve_host(x) for x in environment.get_role('WEB_HOST').hosts]
 
     def _backup(self):
         db_name = "%s" % config['PROJECT_NAME']

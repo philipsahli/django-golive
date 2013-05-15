@@ -133,7 +133,7 @@ class Stack(object):
         self.environment = Environment(self.environment_name)
 
         # read it
-        self.configfile = self.read_config()
+        self.configfile = self.read_stackconfigfile()
 
         # parse it
         self.parse()
@@ -141,12 +141,15 @@ class Stack(object):
     def __str__(self):
         return "Stack: %s" % self.name
 
+    def _read_userconfigfile(self):
+        return  open(Stack.CONFIG, 'r')
+
     def parse(self):
         # load stack config (tasks for roles)
         stack_config = yaml.load(self.configfile)
 
         # load user config
-        environment_configfile = open(Stack.CONFIG, 'r')
+        environment_configfile = self._read_userconfigfile()
         self.environment_config_temp = yaml.load(environment_configfile)['ENVIRONMENTS']
 
         # load defaults, allows to be overwriten per environment
@@ -191,7 +194,7 @@ class Stack(object):
                 hosts = []
             self.get_role(role).hosts = hosts
 
-    def read_config(self):
+    def read_stackconfigfile(self):
         pmd = sys.modules['golive.stacks'].__path__[0]
         configfile = file("%s/%s.yaml" % (pmd, self.name.lower()), "r")
         return configfile

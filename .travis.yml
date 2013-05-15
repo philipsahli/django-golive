@@ -13,7 +13,7 @@ install:
 #before_script:
 #  - "cp mezzanine/project_template/local_settings.py.template mezzanine/project_template/local_settings.py"
 script:
-  - cd project_examples/django_example && python manage.py test golive
+  - cd project_examples/django_example && python manage.py test golive --settings=django_example.tests
 notifications:
   email: "philip.sahli@fatrix.ch"
   on_success: change

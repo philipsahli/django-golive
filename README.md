@@ -1,6 +1,8 @@
 django-golive
 =============
 
+[![Build Status](https://travis-ci.org/fatrix/django-golive.png?branch=master)](https://travis-ci.org/fatrix/django-golive)
+
 > ... is not yet production ready. If you are interested in any updates on this:
 
 > - follow [me] on Twitter
