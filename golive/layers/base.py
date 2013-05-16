@@ -212,7 +212,6 @@ class BaseSetup(BaseTask, DebianPackageMixin, PyPackageMixin):
 
 
 
-
 class IPTablesSetup(TemplateBasedSetup, BaseTask):
 
     def __init__(self):

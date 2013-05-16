@@ -208,33 +208,6 @@ class WorkerCamSetup(DjangoSetup):
         super(WorkerCamSetup, self).set_supervisor_appname()
         self.supervisor_appname += "_worker_cam"
 
-        #def _configure_startup(self):
-    #    supervisor = SupervisorSetup()
-#
-#        # supervisor config
-#        supervisor.set_context_data(PYTHON="/home/%s/.virtualenvs/%s/bin/python" % (
-#            config['USER'], config['PROJECT_NAME']),
-#                                    PROJECT_DIR="/home/%s/code/%s" % (config['USER'], config['PROJECT_NAME']),
-#                                    PROJECT=config['PROJECT_NAME'],
-#                                    ENVIRONMENT=config['ENV_ID'],
-#                                    USER=config['USER'],
-#                                    APPNAME=self.supervisor_appname,
-#                                    SETTINGS=self._settings_modulestring()
-#        )
-#
-#        supervisor.set_local_filename(self.__class__.supervisor_conf_template)
-#        supervisor.set_destination_filename("/etc/supervisor/conf.d/%s.conf" % self.supervisor_appname)
-#
-#        supervisor.init()
-#        supervisor.deploy()
-#
-#        # run wrapper script
-#        supervisor.set_local_filename(self.__class__.supervisor_run_template)
-#        supervisor.set_destination_filename("/home/%s/%s.run" % (config['USER'], self.supervisor_appname))
-#        supervisor.init()
-#        supervisor.deploy()
-#        supervisor.post_deploy()
-
 
 class RabbitMqSetup(BaseTask, DebianPackageMixin):
     # TODO: move to a queue module
