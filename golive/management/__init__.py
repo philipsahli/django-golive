@@ -22,7 +22,6 @@ class CoreCommand(BaseCommand):
         # load user config
         environment_configfile = open("golive.yml", 'r')
         stackname = self.environment_config_temp = yaml.load(environment_configfile)['CONFIG']['STACK']
-        import pdb; pdb.set_trace()
 
         self.stack = StackFactory.get(stackname)
         self.stack.setup_environment(args[0])
