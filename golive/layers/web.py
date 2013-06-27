@@ -11,8 +11,6 @@ class NginxSetup(DebianPackageMixin, TemplateBasedSetup):
     package_name = 'nginx'
     configfile = 'golive/nginx.conf'
 
-    RULE = (None, config['DB_HOST'], 80)
-
     def init(self, update=True):
         DebianPackageMixin.init(self, update)
         self.execute(sudo, "update-rc.d nginx start")
@@ -38,20 +36,27 @@ class NginxSetup(DebianPackageMixin, TemplateBasedSetup):
 
         # send file
         nginx_configfile = config['SERVERNAME']
-        #self.put_sudo(file_local, "/etc/nginx/sites-enabled/%s.conf" % config['SERVERNAME'])
         self.put_sudo(file_local, "/etc/nginx/sites-enabled/%s.conf" % nginx_configfile)
 
         # TODO: add autostart
         self.execute(sudo, "/etc/init.d/nginx reload")
         self.execute(sudo, "/etc/init.d/nginx start")
 
-        IPTablesSetup._open(self.__class__.RULE)
-
         if "test" not in sys.argv:
             time.sleep(2)
 
+        self._call()
+
+    def _call(self):
         if "test" not in sys.argv:
             print local("curl -I http://%s" % config['SERVERNAME'], capture=True)
+
+    def update(self):
+        self._call()
+
+    def status(self):
+        print self.run("ps -ef|egrep -i nginx")
+        print self._call()
 
     def _port(self):
         h = hashlib.sha256("%s_%s" % (config['PROJECT_NAME'], config['ENV_ID']))

@@ -3,9 +3,10 @@
 :FORWARD ACCEPT
 :OUTPUT ACCEPT
 # basic
+-A INPUT -i lo -j ACCEPT 
 -A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
 -A FORWARD -i eth0 -m state --state RELATED,ESTABLISHED -j ACCEPT
 -A OUTPUT -m state --state NEW,RELATED,ESTABLISHED -j ACCEPT
 -A INPUT -p tcp --dport 22 -j ACCEPT
 -A INPUT -p tcp --dport 80 -j ACCEPT
--A INPUT -s 127.0.0.1 -j ACCEPT
+-A INPUT -s 127.0.0.0/8 -j ACCEPT

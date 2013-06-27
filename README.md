@@ -213,8 +213,13 @@ Builtin Components
 
 * Start/stop process configuration
 
-    Configures a process for supervisor. Thatfor `templates/golive/supervisor_django.conf`
+    Configures a process for supervisor. Therefor `templates/golive/supervisor_django.conf`
     is uploaded to `/etc/supervisor/conf.d/app.conf`.
+
+    Supervisord has some limitiations in handling the process execution and the resulting environment.
+    To access the environment variables set with the command `set_var` supervisor is
+    executing a bash script `supervisor_django.run`, which exports all variables
+    from `$HOME/.golive.rc`.
 
 * Send Djangoproject
 
@@ -231,17 +236,43 @@ Builtin Components
 
 * Synchronize Databaseschema
 
-    Executes `syncdb` django command. If south is installed, `migratedb` in addition.
+    Executes `syncdb` django command. If south is installed, in addition `migratedb`.
 
 * Collect staticfiles
 
-    Collects the staticfiles with the standard django-admin command to $HOME/static/
+    Collects the staticfiles with the standard django-admin command to `$HOME/static/`.
 
 * Start django process
 
     The process for django is started with `supervisorctl`:
 
         sudo supervisorctl start app
+
+* IPTables
+
+    All connections to the tcp port are denied unless their initiated by any server in the `WEB_HOST` role.
+
+***
+
+### golive.layers.app.RabbitMqSetup
+
+TODO
+
+***
+
+### golive.layers.app.WorkerSetup
+
+* Before installation
+
+    Set the environment variable `BROKER_URL`, i.e.:
+
+        python manage.py set_var ENVIRONMENT BROKER_URL amqp://USERNAME:PASSWORD@HOST:5672/
+
+* Setting
+
+    Add following to your `settings.py`:
+
+        BROKER_URL = os.environ['GOLIVE_BROKER_URL']
 
 
 Built-In Stack's
@@ -287,6 +318,10 @@ For Developers
 Features in the future
 ----------------------
 - Install [newrelic] Server Monitoring Agent
+- Install [newrelic] Python Monitoring Agent
+  - create newrelic.ini (in $HOME)
+  - install new-relic with pip
+  - modify run file
 - New stacks
   - Gunicorn
   - Django and Websockets

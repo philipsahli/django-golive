@@ -2,25 +2,34 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="36bdee0c-bf22-4598-9e83-7ee8f14882d7" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/golive/management/commands/create_config.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/golive/layers/queue.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/golive/management/commands/status.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/README.md" afterPath="$PROJECT_DIR$/README.md" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/golive/layers/app.py" afterPath="$PROJECT_DIR$/golive/layers/app.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/golive/layers/base.py" afterPath="$PROJECT_DIR$/golive/layers/base.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/golive/layers/db.py" afterPath="$PROJECT_DIR$/golive/layers/db.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/project_examples/django_example/golive.yml" afterPath="$PROJECT_DIR$/project_examples/django_example/golive.yml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/golive/utils.py" afterPath="$PROJECT_DIR$/golive/utils.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/golive/stacks/gunicelery.yaml" afterPath="$PROJECT_DIR$/golive/stacks/gunicelery.yaml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/golive/templates/golive/iptables/iptables_basic" afterPath="$PROJECT_DIR$/golive/templates/golive/iptables/iptables_basic" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/golive/templates/golive/iptables/iptables_last" afterPath="$PROJECT_DIR$/golive/templates/golive/iptables/iptables_last" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/golive/stacks/stack.py" afterPath="$PROJECT_DIR$/golive/stacks/stack.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/golive/templates/golive/supervisor_celery_worker.run" afterPath="$PROJECT_DIR$/golive/templates/golive/supervisor_celery_worker.run" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/golive/tests.py" afterPath="$PROJECT_DIR$/golive/tests.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/golive/layers/web.py" afterPath="$PROJECT_DIR$/golive/layers/web.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="django-golive.iws" />
     <ignored path=".idea/workspace.xml" />
-    <file path="/Dummy.txt" changelist="36bdee0c-bf22-4598-9e83-7ee8f14882d7" time="1368048449635" ignored="false" />
+    <file path="/Dummy.txt" changelist="36bdee0c-bf22-4598-9e83-7ee8f14882d7" time="1370232458804" ignored="false" />
     <file path="/settings.py" changelist="36bdee0c-bf22-4598-9e83-7ee8f14882d7" time="1368047373694" ignored="false" />
-    <file path="/app.py" changelist="36bdee0c-bf22-4598-9e83-7ee8f14882d7" time="1368645637034" ignored="false" />
-    <file path="/README.md" changelist="36bdee0c-bf22-4598-9e83-7ee8f14882d7" time="1368571488523" ignored="false" />
+    <file path="/app.py" changelist="36bdee0c-bf22-4598-9e83-7ee8f14882d7" time="1370013176744" ignored="false" />
+    <file path="/README.md" changelist="36bdee0c-bf22-4598-9e83-7ee8f14882d7" time="1368675823750" ignored="false" />
     <file path="/collector.py" changelist="36bdee0c-bf22-4598-9e83-7ee8f14882d7" time="1366097192320" ignored="false" />
-    <file path="/tests.py" changelist="36bdee0c-bf22-4598-9e83-7ee8f14882d7" time="1368645412319" ignored="false" />
-    <file path="/db.py" changelist="36bdee0c-bf22-4598-9e83-7ee8f14882d7" time="1368637118215" ignored="false" />
-    <file path="/web.py" changelist="36bdee0c-bf22-4598-9e83-7ee8f14882d7" time="1368637496646" ignored="false" />
+    <file path="/tests.py" changelist="36bdee0c-bf22-4598-9e83-7ee8f14882d7" time="1370026305808" ignored="false" />
+    <file path="/db.py" changelist="36bdee0c-bf22-4598-9e83-7ee8f14882d7" time="1370011998236" ignored="false" />
+    <file path="/web.py" changelist="36bdee0c-bf22-4598-9e83-7ee8f14882d7" time="1369753435803" ignored="false" />
     <file path="/__init__.py" changelist="36bdee0c-bf22-4598-9e83-7ee8f14882d7" time="1368631661220" ignored="false" />
-    <file path="/base.py" changelist="36bdee0c-bf22-4598-9e83-7ee8f14882d7" time="1368645758632" ignored="false" />
+    <file path="/base.py" changelist="36bdee0c-bf22-4598-9e83-7ee8f14882d7" time="1370019910054" ignored="false" />
     <file path="/classic.yaml" changelist="36bdee0c-bf22-4598-9e83-7ee8f14882d7" time="1366372853868" ignored="false" />
     <file path="/utils.py" changelist="36bdee0c-bf22-4598-9e83-7ee8f14882d7" time="1366060733886" ignored="false" />
     <file path="/supervisord_django.conf" changelist="36bdee0c-bf22-4598-9e83-7ee8f14882d7" time="1366213002919" ignored="false" />
@@ -28,7 +37,7 @@
     <file path="/requirements.txt" changelist="36bdee0c-bf22-4598-9e83-7ee8f14882d7" time="1366138543083" ignored="false" />
     <file path="/setup.py" changelist="36bdee0c-bf22-4598-9e83-7ee8f14882d7" time="1366086553078" ignored="false" />
     <file path="/golive.yml" changelist="36bdee0c-bf22-4598-9e83-7ee8f14882d7" time="1368050373308" ignored="false" />
-    <file path="/stack.py" changelist="36bdee0c-bf22-4598-9e83-7ee8f14882d7" time="1368645692438" ignored="false" />
+    <file path="/stack.py" changelist="36bdee0c-bf22-4598-9e83-7ee8f14882d7" time="1370019153973" ignored="false" />
     <file path="/nginx.conf" changelist="36bdee0c-bf22-4598-9e83-7ee8f14882d7" time="1367307563136" ignored="false" />
     <file path="/classic-gunicorned.yaml" changelist="36bdee0c-bf22-4598-9e83-7ee8f14882d7" time="1366238089723" ignored="false" />
     <file path="/settings_integration.py" changelist="36bdee0c-bf22-4598-9e83-7ee8f14882d7" time="1366349619547" ignored="false" />
@@ -47,13 +56,13 @@
     <file path="/supervisor_django.run" changelist="36bdee0c-bf22-4598-9e83-7ee8f14882d7" time="1367859392868" ignored="false" />
     <file path="/iptables_basic" changelist="36bdee0c-bf22-4598-9e83-7ee8f14882d7" time="1367954440806" ignored="false" />
     <file path="/iptables_db" changelist="36bdee0c-bf22-4598-9e83-7ee8f14882d7" time="1367771629649" ignored="false" />
-    <file path="/iptables_last" changelist="36bdee0c-bf22-4598-9e83-7ee8f14882d7" time="1367954461414" ignored="false" />
+    <file path="/iptables_last" changelist="36bdee0c-bf22-4598-9e83-7ee8f14882d7" time="1370008092041" ignored="false" />
     <file path="/iptables_service" changelist="36bdee0c-bf22-4598-9e83-7ee8f14882d7" time="1367771779137" ignored="false" />
     <file path="/supervisor_djangogunicorn.run" changelist="36bdee0c-bf22-4598-9e83-7ee8f14882d7" time="1367859429025" ignored="false" />
     <file path="/install_all.sh" changelist="36bdee0c-bf22-4598-9e83-7ee8f14882d7" time="1368135589210" ignored="false" />
     <file path="/urls.py" changelist="36bdee0c-bf22-4598-9e83-7ee8f14882d7" time="1368372089243" ignored="false" />
     <file path="/index.html" changelist="36bdee0c-bf22-4598-9e83-7ee8f14882d7" time="1368282050127" ignored="false" />
-    <file path="/gunicelery.yaml" changelist="36bdee0c-bf22-4598-9e83-7ee8f14882d7" time="1368215792471" ignored="false" />
+    <file path="/gunicelery.yaml" changelist="36bdee0c-bf22-4598-9e83-7ee8f14882d7" time="1369754182207" ignored="false" />
     <file path="/supervisor_celery_worker.run" changelist="36bdee0c-bf22-4598-9e83-7ee8f14882d7" time="1368366717253" ignored="false" />
     <file path="/supervisor_celery_worker.conf" changelist="36bdee0c-bf22-4598-9e83-7ee8f14882d7" time="1368139523443" ignored="false" />
     <file path="/supervisor_celery_worker_cam.run" changelist="36bdee0c-bf22-4598-9e83-7ee8f14882d7" time="1368215751595" ignored="false" />
@@ -62,6 +71,14 @@
     <file path="/app.coffee" changelist="36bdee0c-bf22-4598-9e83-7ee8f14882d7" time="1368306736993" ignored="false" />
     <file path="/tasks.py" changelist="36bdee0c-bf22-4598-9e83-7ee8f14882d7" time="1368371668998" ignored="false" />
     <file path="/create_config.py" changelist="36bdee0c-bf22-4598-9e83-7ee8f14882d7" time="1368662504053" ignored="false" />
+    <file path="$PROJECT_DIR$/../kuntur_project/app/kuntur/golive.yml" changelist="36bdee0c-bf22-4598-9e83-7ee8f14882d7" time="1368668532975" ignored="false" />
+    <file path="$PROJECT_DIR$/../kuntur_project/app/kuntur/settings.py" changelist="36bdee0c-bf22-4598-9e83-7ee8f14882d7" time="1369413158544" ignored="false" />
+    <file path="$PROJECT_DIR$/../kuntur_project/app/kuntur/settings_dev.py" changelist="36bdee0c-bf22-4598-9e83-7ee8f14882d7" time="1369408266801" ignored="false" />
+    <file path="/settings_dev.py" changelist="36bdee0c-bf22-4598-9e83-7ee8f14882d7" time="1369408266476" ignored="false" />
+    <file path="$USER_HOME$/virtualenvs/kuntur/lib/python2.7/site-packages/django/forms/models.py" changelist="36bdee0c-bf22-4598-9e83-7ee8f14882d7" time="1369413158544" ignored="false" />
+    <file path="$PROJECT_DIR$/../kuntur_project/app/kuntur/requirements.txt" changelist="36bdee0c-bf22-4598-9e83-7ee8f14882d7" time="1369413233094" ignored="false" />
+    <file path="$PROJECT_DIR$/../sahli.net/app/sahli_net/theme_businesscard/templates/base.html" changelist="36bdee0c-bf22-4598-9e83-7ee8f14882d7" time="1369688383849" ignored="false" />
+    <file path="/queue.py" changelist="36bdee0c-bf22-4598-9e83-7ee8f14882d7" time="1370020515719" ignored="false" />
     <option name="TRACKING_ENABLED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -77,38 +94,50 @@
   </component>
   <component name="ExecutionTargetManager" SELECTED_TARGET="default_target" />
   <component name="FileEditorManager">
-    <splitter split-orientation="horizontal" split-proportion="0.51293105">
+    <splitter split-orientation="horizontal" split-proportion="0.47345454">
       <split-first>
         <leaf>
-          <file leaf-file-name="base.py" pinned="false" current="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/golive/layers/base.py">
-              <provider selected="true" editor-type-id="text-editor">
-                <state line="275" column="38" selection-start="8751" selection-end="8751" vertical-scroll-proportion="0.0">
-                  <folding>
-                    <element signature="e#0#15#0" expanded="true" />
-                  </folding>
-                </state>
-              </provider>
-            </entry>
-          </file>
           <file leaf-file-name="tests.py" pinned="false" current="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/golive/tests.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state line="10" column="0" selection-start="207" selection-end="207" vertical-scroll-proportion="0.0">
-                  <folding>
-                    <element signature="e#0#15#0" expanded="true" />
-                  </folding>
+                <state line="261" column="0" selection-start="10529" selection-end="10529" vertical-scroll-proportion="0.0">
+                  <folding />
                 </state>
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="app.py" pinned="false" current="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/golive/layers/app.py">
+          <file leaf-file-name="web.py" pinned="false" current="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/golive/layers/web.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state line="214" column="0" selection-start="7923" selection-end="7923" vertical-scroll-proportion="0.0">
-                  <folding>
-                    <element signature="e#0#14#0" expanded="true" />
-                  </folding>
+                <state line="37" column="46" selection-start="1162" selection-end="1162" vertical-scroll-proportion="0.0">
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="create_config.py" pinned="false" current="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/golive/management/commands/create_config.py">
+              <provider selected="true" editor-type-id="text-editor">
+                <state line="1" column="0" selection-start="47" selection-end="47" vertical-scroll-proportion="0.0">
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="iptables_basic" pinned="false" current="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/golive/templates/golive/iptables/iptables_basic">
+              <provider selected="true" editor-type-id="text-editor">
+                <state line="10" column="22" selection-start="338" selection-end="338" vertical-scroll-proportion="0.0">
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="iptables_last" pinned="false" current="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/golive/templates/golive/iptables/iptables_last">
+              <provider selected="true" editor-type-id="text-editor">
+                <state line="2" column="4" selection-start="61" selection-end="61" vertical-scroll-proportion="0.0">
+                  <folding />
                 </state>
               </provider>
             </entry>
@@ -117,9 +146,74 @@
             <entry file="file://$PROJECT_DIR$/golive/management/commands/deploy.py">
               <provider selected="true" editor-type-id="text-editor">
                 <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0">
-                  <folding>
-                    <element signature="e#0#32#0" expanded="true" />
-                  </folding>
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="__init__.py" pinned="false" current="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/golive/management/__init__.py">
+              <provider selected="true" editor-type-id="text-editor">
+                <state line="38" column="20" selection-start="1063" selection-end="1063" vertical-scroll-proportion="0.0">
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="stack.py" pinned="false" current="false" current-in-tab="true">
+            <entry file="file://$PROJECT_DIR$/golive/stacks/stack.py">
+              <provider selected="true" editor-type-id="text-editor">
+                <state line="327" column="40" selection-start="10494" selection-end="10494" vertical-scroll-proportion="0.3152174">
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+        </leaf>
+      </split-first>
+      <split-second>
+        <leaf>
+          <file leaf-file-name="tests.py" pinned="false" current="true" current-in-tab="true">
+            <entry file="file://$PROJECT_DIR$/golive/tests.py">
+              <provider selected="true" editor-type-id="text-editor">
+                <state line="254" column="25" selection-start="10144" selection-end="10144" vertical-scroll-proportion="0.74276525">
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="base.py" pinned="false" current="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/golive/layers/base.py">
+              <provider selected="true" editor-type-id="text-editor">
+                <state line="449" column="8" selection-start="13928" selection-end="13928" vertical-scroll-proportion="0.0">
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="cache.py" pinned="false" current="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/golive/layers/cache.py">
+              <provider selected="true" editor-type-id="text-editor">
+                <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0">
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="app.py" pinned="false" current="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/golive/layers/app.py">
+              <provider selected="true" editor-type-id="text-editor">
+                <state line="175" column="0" selection-start="6421" selection-end="6421" vertical-scroll-proportion="0.0">
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="queue.py" pinned="false" current="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/golive/layers/queue.py">
+              <provider selected="true" editor-type-id="text-editor">
+                <state line="18" column="0" selection-start="613" selection-end="613" vertical-scroll-proportion="0.0">
+                  <folding />
                 </state>
               </provider>
             </entry>
@@ -137,15 +231,13 @@
             <entry file="file://$PROJECT_DIR$/golive/management/commands/set_var.py">
               <provider selected="true" editor-type-id="text-editor">
                 <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0">
-                  <folding>
-                    <element signature="e#0#46#0" expanded="true" />
-                  </folding>
+                  <folding />
                 </state>
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="update.py" pinned="false" current="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/golive/management/commands/update.py">
+          <file leaf-file-name="status.py" pinned="false" current="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/golive/management/commands/status.py">
               <provider selected="true" editor-type-id="text-editor">
                 <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0">
                   <folding />
@@ -153,48 +245,20 @@
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="__init__.py" pinned="false" current="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/golive/management/__init__.py">
+          <file leaf-file-name="update.py" pinned="false" current="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/golive/management/commands/update.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state line="24" column="34" selection-start="736" selection-end="736" vertical-scroll-proportion="0.0">
-                  <folding>
-                    <element signature="e#0#46#0" expanded="true" />
-                  </folding>
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="create_config.py" pinned="false" current="true" current-in-tab="true">
-            <entry file="file://$PROJECT_DIR$/golive/management/commands/create_config.py">
-              <provider selected="true" editor-type-id="text-editor">
-                <state line="22" column="13" selection-start="522" selection-end="522" vertical-scroll-proportion="0.42857143">
+                <state line="6" column="0" selection-start="82" selection-end="82" vertical-scroll-proportion="0.0">
                   <folding />
                 </state>
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="utils.py" pinned="false" current="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/golive/utils.py">
+          <file leaf-file-name="db.py" pinned="false" current="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/golive/layers/db.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state line="9" column="0" selection-start="90" selection-end="90" vertical-scroll-proportion="0.0">
-                  <folding>
-                    <element signature="e#0#13#0" expanded="true" />
-                  </folding>
-                </state>
-              </provider>
-            </entry>
-          </file>
-        </leaf>
-      </split-first>
-      <split-second>
-        <leaf>
-          <file leaf-file-name="stack.py" pinned="false" current="false" current-in-tab="true">
-            <entry file="file://$PROJECT_DIR$/golive/stacks/stack.py">
-              <provider selected="true" editor-type-id="text-editor">
-                <state line="142" column="0" selection-start="3381" selection-end="3381" vertical-scroll-proportion="0.61085975">
-                  <folding>
-                    <element signature="e#0#10#0" expanded="true" />
-                  </folding>
+                <state line="47" column="0" selection-start="1658" selection-end="1658" vertical-scroll-proportion="0.0">
+                  <folding />
                 </state>
               </provider>
             </entry>
@@ -219,28 +283,28 @@
   <component name="IdeDocumentHistory">
     <option name="changedFiles">
       <list>
-        <option value="$PROJECT_DIR$/project_examples/djangocelery_example/views.py" />
-        <option value="$PROJECT_DIR$/project_examples/djangocelery_example/celerydemo/views.py" />
-        <option value="$PROJECT_DIR$/project_examples/djangocelery_example/celerydemo/coffee/app.coffee" />
-        <option value="$PROJECT_DIR$/project_examples/djangocelery_example/celerydemo/urls.py" />
-        <option value="$PROJECT_DIR$/project_examples/djangocelery_example/djangocelery_example/urls.py" />
-        <option value="$PROJECT_DIR$/travis.yml" />
-        <option value="$PROJECT_DIR$/README.md" />
         <option value="$PROJECT_DIR$/golive/management/__init__.py" />
-        <option value="$PROJECT_DIR$/golive/layers/db.py" />
-        <option value="$PROJECT_DIR$/golive/layers/web.py" />
-        <option value="$PROJECT_DIR$/golive/tests.py" />
-        <option value="$PROJECT_DIR$/golive/stacks/stack.py" />
         <option value="$PROJECT_DIR$/golive/utils.py" />
-        <option value="$PROJECT_DIR$/golive/layers/base.py" />
-        <option value="$PROJECT_DIR$/golive/layers/app.py" />
         <option value="$PROJECT_DIR$/golive/management/commands/create_config.py" />
+        <option value="$PROJECT_DIR$/README.md" />
+        <option value="$PROJECT_DIR$/golive/templates/golive/supervisor_celery_worker.run" />
+        <option value="$PROJECT_DIR$/golive/stacks/gunicelery.yaml" />
+        <option value="$PROJECT_DIR$/golive/layers/security.py" />
+        <option value="$PROJECT_DIR$/golive/templates/golive/iptables/iptables_last" />
+        <option value="$PROJECT_DIR$/golive/stacks/stack.py" />
+        <option value="$PROJECT_DIR$/golive/templates/golive/iptables/iptables_basic" />
+        <option value="$PROJECT_DIR$/golive/layers/web.py" />
+        <option value="$PROJECT_DIR$/golive/layers/app.py" />
+        <option value="$PROJECT_DIR$/golive/layers/db.py" />
+        <option value="$PROJECT_DIR$/golive/layers/queue.py" />
+        <option value="$PROJECT_DIR$/golive/layers/base.py" />
+        <option value="$PROJECT_DIR$/golive/tests.py" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="width" value="1280" />
-    <option name="height" value="800" />
+    <option name="width" value="1920" />
+    <option name="height" value="1080" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="false">
     <OptionsSetting value="true" id="Add" />
@@ -297,6 +361,54 @@
             </PATH_ELEMENT>
             <PATH_ELEMENT>
               <option name="myItemId" value="golive" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="django-golive" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="django-golive" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="golive" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="templates" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="golive" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="django-golive" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="django-golive" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="golive" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="templates" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="golive" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="iptables" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -385,7 +497,7 @@
     <property name="options.splitter.main.proportions" value="0.3" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="options.lastSelected" value="com.jetbrains.python.configuration.PythonSdkConfigurable" />
-    <property name="last_opened_file_path" value="$USER_HOME$/virtualenvs/golive/bin/python" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/golive/layers/app.py" />
     <property name="FullScreen" value="true" />
     <property name="options.splitter.details.proportions" value="0.2" />
     <property name="options.searchVisible" value="true" />
@@ -528,24 +640,24 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="0" width="1280" height="800" extended-state="0" />
-    <editor active="true" />
+    <frame x="0" y="0" width="1920" height="1080" extended-state="0" />
+    <editor active="false" />
     <layout>
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.5839874" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3292683" sideWeight="0.6584845" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.24959481" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.24797407" sideWeight="0.41601256" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25186765" sideWeight="0.6707317" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.1782284" sideWeight="0.7154471" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
-      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3292683" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32954547" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.3292683" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
@@ -609,41 +721,75 @@
     <breakpoint-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/golive/layers/db.py">
+    <entry file="file://$PROJECT_DIR$/golive/management/commands/create_config.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="39" column="4" selection-start="1387" selection-end="1387" vertical-scroll-proportion="0.0">
-          <folding>
-            <element signature="e#0#15#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/golive/layers/web.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="42" column="0" selection-start="1389" selection-end="1389" vertical-scroll-proportion="0.0">
-          <folding>
-            <element signature="e#0#14#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/virtualenvs/golive/lib/python2.7/site-packages/fabric/tasks.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="52" column="13" selection-start="1492" selection-end="1492" vertical-scroll-proportion="0.9609375">
+        <state line="1" column="0" selection-start="47" selection-end="47" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$USER_HOME$/virtualenvs/golive/lib/python2.7/site-packages/fabric/contrib/files.py">
+    <entry file="file://$PROJECT_DIR$/golive/management/commands/__init__.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="320" column="4" selection-start="11809" selection-end="11809" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" />
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/golive/stacks/classic.yaml">
+    <entry file="file://$PROJECT_DIR$/golive/__init__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/golive/management/commands/deploy.py">
       <provider selected="true" editor-type-id="text-editor">
         <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/golive/management/__init__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="38" column="20" selection-start="1063" selection-end="1063" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/golive/stacks/stack.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="327" column="40" selection-start="10494" selection-end="10494" vertical-scroll-proportion="0.3152174">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/golive/tests.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="254" column="25" selection-start="10144" selection-end="10144" vertical-scroll-proportion="0.74276525">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/golive/layers/base.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="449" column="8" selection-start="13928" selection-end="13928" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/golive/layers/cache.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/golive/layers/app.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="175" column="0" selection-start="6421" selection-end="6421" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/golive/layers/queue.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="18" column="0" selection-start="613" selection-end="613" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
@@ -658,85 +804,27 @@
     <entry file="file://$PROJECT_DIR$/golive/management/commands/set_var.py">
       <provider selected="true" editor-type-id="text-editor">
         <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0">
-          <folding>
-            <element signature="e#0#46#0" expanded="true" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/golive/management/commands/update.py">
+    <entry file="file://$PROJECT_DIR$/golive/management/commands/status.py">
       <provider selected="true" editor-type-id="text-editor">
         <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/golive/management/__init__.py">
+    <entry file="file://$PROJECT_DIR$/golive/management/commands/update.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="24" column="34" selection-start="736" selection-end="736" vertical-scroll-proportion="0.0">
-          <folding>
-            <element signature="e#0#46#0" expanded="true" />
-          </folding>
+        <state line="6" column="0" selection-start="82" selection-end="82" vertical-scroll-proportion="0.0">
+          <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/golive/tests.py">
+    <entry file="file://$PROJECT_DIR$/golive/layers/db.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="10" column="0" selection-start="207" selection-end="207" vertical-scroll-proportion="0.0">
-          <folding>
-            <element signature="e#0#15#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/golive/utils.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="9" column="0" selection-start="90" selection-end="90" vertical-scroll-proportion="0.0">
-          <folding>
-            <element signature="e#0#13#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/golive/layers/base.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="275" column="38" selection-start="8751" selection-end="8751" vertical-scroll-proportion="0.0">
-          <folding>
-            <element signature="e#0#15#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/golive/layers/app.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="214" column="0" selection-start="7923" selection-end="7923" vertical-scroll-proportion="0.0">
-          <folding>
-            <element signature="e#0#14#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/golive/stacks/stack.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="142" column="0" selection-start="3381" selection-end="3381" vertical-scroll-proportion="0.61085975">
-          <folding>
-            <element signature="e#0#10#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/golive/management/commands/deploy.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0">
-          <folding>
-            <element signature="e#0#32#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/golive/management/commands/create_config.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="22" column="13" selection-start="522" selection-end="522" vertical-scroll-proportion="0.42857143">
+        <state line="47" column="0" selection-start="1658" selection-end="1658" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>

@@ -21,7 +21,7 @@ ROLES:
     QUEUE_HOST:
       ORDER: 4
       TASKS:
-       - golive.layers.app.RabbitMqSetup
+       - golive.layers.queue.RabbitMqSetup
     WORKER_HOST:
       ORDER: 5
       TASKS:

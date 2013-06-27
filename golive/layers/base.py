@@ -1,15 +1,15 @@
 import tempfile
 import sys
+import time
 
 from fabric.api import run as remote_run
-from fabric.context_managers import prefix, cd, settings, hide
+from fabric.context_managers import settings, hide
 from fabric.contrib.files import exists, append
-from fabric.operations import sudo, put, get
+from fabric.operations import sudo, put, get, os
 from fabric.state import env
 from fabric.tasks import execute
-
 from django.template import loader, Context
-import time
+
 from golive.stacks.stack import config, environment
 import golive.utils
 
@@ -20,16 +20,41 @@ class BaseTask(object):
         # TODO: allow custom packages to be installed
         super(BaseTask, self).__init__()
 
-    def deploy(self):
+    def pre_init(self):
         pass
 
     def init(self):
         pass
 
+    def post_init(self):
+        pass
+
+    def pre_deploy(self):
+        pass
+
+    def deploy(self):
+        pass
+
+    def post_deploy(self):
+        pass
+
+    def pre_update(self):
+        pass
+
     def update(self):
         pass
 
+    def post_update(self):
+        pass
+
     def run(self, command, fail_silently=False):
+        if fail_silently:
+            with settings(warn_only=True):
+                return execute(remote_run, command)
+        return execute(remote_run, command)
+
+    @classmethod
+    def run(cls, command, fail_silently=False):
         if fail_silently:
             with settings(warn_only=True):
                 return execute(remote_run, command)
@@ -67,8 +92,11 @@ class BaseTask(object):
         env.hosts = env.hosts_orig
 
     def execute(self, f, *args):
-        #with hide('running'):
         return execute(f, *args, hosts=env.hosts)
+
+    @classmethod
+    def execute_on_host(cls, f, host, *args):
+        return execute(f, *args, hosts=[host])
 
     def execute_silently(self, f, *args):
         with settings(warn_only=True):
@@ -92,6 +120,9 @@ class BaseTask(object):
 
     def check(self):
         print "No check actions defined"
+
+    def chown(self, filename, user):
+        self.execute(sudo, "chown %s %s" % (user, filename))
 
 
 class TemplateBasedSetup(BaseTask):
@@ -133,26 +164,18 @@ class TemplateBasedSetup(BaseTask):
         return file_local
 
 
-class DjangoBaseTask():
-    def manage(self, command):
-        with prefix('. %s/.virtualenvs/%s/bin/activate' % (env.remote_home, env.project_name)):
-            with cd("%s/code/%s" % (env.remote_home, env.project_name)):
-                self.run(". %s/.golive.rc && python manage.py %s" % (env.remote_home, command))
-
-
 class DebianPackageMixin():
 
     def init(self, update=True):
         if getattr(self.__class__, 'package_name', None):
             with settings(warn_only=True):
-                #o = self.execute(run, 'dpkg -l %s' % self.__class__.package_name)
                 if update:
                     self.execute(sudo, "apt-get update")
                 return self.execute(sudo, "apt-get -y install %s" % self.__class__.package_name)
 
-    def remove(self):
-        self.execute(sudo, "apt-get remove -y %s" % self.__class__.package_name)
-        self.execute(sudo, "apt-get --purge autoremove -y -q")
+    #def remove(self):
+    #    self.execute(sudo, "apt-get remove -y %s" % self.__class__.package_name)
+    #    self.execute(sudo, "apt-get --purge autoremove -y -q")
 
 
 class PyPackageMixin():
@@ -164,9 +187,9 @@ class PyPackageMixin():
                     self.execute(sudo, "apt-get update")
                 return self.execute(sudo, "apt-get -y install %s" % self.__class__.package_name)
 
-    def remove(self):
-        self.execute(sudo, "apt-get remove -y %s" % self.__class__.package_name)
-        self.execute(sudo, "apt-get --purge autoremove -y -q")
+    #def remove(self):
+    #    self.execute(sudo, "apt-get remove -y %s" % self.__class__.package_name)
+    #    self.execute(sudo, "apt-get --purge autoremove -y -q")
 
 
 class BaseSetup(BaseTask, DebianPackageMixin, PyPackageMixin):
@@ -174,24 +197,33 @@ class BaseSetup(BaseTask, DebianPackageMixin, PyPackageMixin):
     # for deployment
     package_name = 'rsync git'
     # for PIL
-    package_name += ' gcc python-dev libjpeg-dev libfreetype6-dev postgresql-client'
+    package_name += ' gcc python-dev libjpeg-dev libfreetype6-dev postgresql-client mercurial'
     # for daily operations
     package_name += ' htop curl lsof sysstat'
+    # for process management
+    package_name += ' supervisor'
 
     def init(self, update=True):
         DebianPackageMixin.init(self, update=True)
 
-    def deploy(self):
         self._setup_hostfile()
+
+        with settings(warn_only=True):
+            self.sudo("mkdir %s" % IPTablesSetup.CONFIG_DIR)
+            self.sudo("mkdir %s" % IPTablesSetup.SERVICES_CONFIG_DIR)
+
+        allow = [(environment.hosts, IPTablesSetup.DESTINATION_ALL, "1111")]
+        iptables = IPTablesSetup()
+        iptables.prepare_rules(allow)
+        iptables.set_rules(self.__class__.__name__)
+        iptables.activate()
+
+        self._secure()
+
+    def deploy(self):
         self._secure()
 
     def _secure(self):
-        # setup iptables
-        iptables = IPTablesSetup()
-        # TODO: should only done once per host
-        #iptables.deploy()
-        #iptables.post_deploy()
-
         # secure sshd
         self._secure_sshd()
 
@@ -205,89 +237,14 @@ class BaseSetup(BaseTask, DebianPackageMixin, PyPackageMixin):
         """
         Add every host in environment to the hostfile on the server(s).
         """
-        from golive.stacks.stack import config, environment
+        from golive.stacks.stack import environment
         for host in environment.hosts:
             ip = golive.utils.resolve_host(host)
             self.append("/etc/hosts", "%s %s" % (ip, host))
 
 
-
-class IPTablesSetup(TemplateBasedSetup, BaseTask):
-
-    def __init__(self):
-        from golive.stacks.stack import config, environment
-        self.set_local_filename("golive/iptables/iptables_basic")
-        self.set_destination_filename("/home/%s/iptables_basic" % config['USER'])
-        super(IPTablesSetup, self).__init__()
-
-    @classmethod
-    def _open(cls, rules):
-        # for service (http)
-        #self.set_local_filename("golive/iptables/iptables_service")
-        #self.context_data.update({'clients': source_ips})
-        #self.context_data.update({'PORT': port})
-        #content = self.load_and_render(self.local_filename, **self.context_data)
-        #open(tempfile, "a").write(content)
-
-        if isinstance(rules, list):
-            for rule in rules:
-                cls._rule(*rule)
-        else:
-            cls._rule(*rules)
-
-        IPTablesSetup._persist()
-
-    @classmethod
-    def _rule(cls, source_ips, destination_ip, port):
-        if source_ips is None:
-            line = "iptables -A INPUT -d %s -p tcp --dport %s -j ACCEPT" % (destination_ip, port)
-            BaseTask.sudo(line)
-        else:
-            for source_ip in source_ips:
-                if destination_ip is None:
-                    line = "iptables -A INPUT -s %s -p tcp --dport %s -j ACCEPT" % (source_ip, port)
-                else:
-                    line = "iptables -A INPUT -s %s -d %s -p tcp --dport %s -j ACCEPT" % (source_ip, destination_ip, port)
-                BaseTask.sudo(line)
-
-    def init(self):
-        self.deploy()
-
-    def deploy(self):
-        env.user = config['USER']
-
-        # create temporary local file
-        self.context_data.update({'IP': '10.211.55.26'})
-        tempfile = self.load_and_render_to_tempfile(self.local_filename, **self.context_data)
-
-        # add last
-        self.set_local_filename("golive/iptables/iptables_last")
-        content = self.load_and_render(self.local_filename, **self.context_data)
-        open(tempfile, "a").write(content)
-
-        # send file
-        self.put_sudo(tempfile, self.destination_filename)
-
-    def post_deploy(self):
-        self.sudo("iptables-restore < %s" % self.destination_filename)
-        IPTablesSetup._persist()
-
-        # postgres
-        #self._open(['10.211.55.26'], config['DB_HOST'], 5432)
-        #self._open(['10.211.55.27'], config['DB_HOST'], 32)
-        # wsgi proc
-        #self._open(['10.211.55.26'], config['DB_HOST'], 8528)
-        #self._open(['10.211.55.27'], config['DB_HOST'], 8359)
-
-    @classmethod
-    def _persist(cls):
-        BaseTask.sudo("iptables-save > /etc/iptables.up.rules")
-        BaseTask.append("/etc/network/if-pre-up.d/iptables",
-                        "#!/bin/bash\r\n/sbin/iptables-restore < /etc/iptables.up.rules")
-
-
 class SupervisorSetup(DebianPackageMixin, TemplateBasedSetup):
-    package_name = 'supervisor'
+    #package_name = 'supervisor'
 
     def init(self, update=True):
         DebianPackageMixin.init(self, update)
@@ -302,7 +259,9 @@ class SupervisorSetup(DebianPackageMixin, TemplateBasedSetup):
     def post_deploy(self):
         # sed pattern
         # must be set to the interface for this domain or on a different port
-        self.execute(sudo, "HOSTNAME='"+env.hosts[0]+"' ; sed \"s/%.*HOST.*%/$HOSTNAME/g\" -i " + self.destination_filename)
+        self.execute(sudo, "HOSTNAME='" + env.hosts[0] +
+                           "' ; sed \"s/%.*HOST.*%/$HOSTNAME/g\" -i "
+                           + self.destination_filename)
 
         # initial daemon start
         self.execute(sudo, "pgrep supervisor || /etc/init.d/supervisor start")
@@ -324,7 +283,8 @@ class UserSetup(BaseTask):
 
     def init(self):
         # create baseuser
-        from golive.stacks.stack import config, environment
+        from golive.stacks.stack import config
+
         env.user = config['INIT_USER']
         env.project_name = config['PROJECT_NAME']
         user = config['USER']
@@ -342,12 +302,11 @@ class UserSetup(BaseTask):
 
         # create rc file
         with settings(warn_only=True):
-            #with hide("warnings"):
-                self.execute(sudo, "touch /home/%s/.golive.rc" % user)
-                self.execute(sudo, "chmod 600 /home/%s/.golive.rc" % user)
-                self.execute(sudo, "chown %s:%s /home/%s/.golive.rc" % (user, user, user))
-                self.append("/home/%s/.bashrc" % user, ". .golive.rc")
-                self.append("/home/%s/.bash_profile" % user, ". .golive.rc")
+            self.execute(sudo, "touch /home/%s/.golive.rc" % user)
+            self.execute(sudo, "chmod 600 /home/%s/.golive.rc" % user)
+            self.execute(sudo, "chown %s:%s /home/%s/.golive.rc" % (user, user, user))
+            self.append("/home/%s/.bashrc" % user, ". .golive.rc")
+            self.append("/home/%s/.bash_profile" % user, ". .golive.rc")
 
         # setup ssh pub-auth for user
         pubkey_file = config['PUBKEY']
@@ -360,10 +319,137 @@ class UserSetup(BaseTask):
             self.sudo("chmod 600 /home/%s/.ssh/authorized_keys2" % user)
             self.sudo("chown %s:%s /home/%s/.ssh/authorized_keys2" % (user, user, user))
 
-        #self.append("/home/%s/.ssh/authorized_keys2" % user, open(pubkey_file, 'r').readline())
         self.append("/home/%s/.ssh/authorized_keys2" % user, self.readfile(pubkey_file))
 
         env.user = config['USER']
 
     def readfile(self, filename):
         return open(filename, 'r').readline()
+
+
+IPTABLES_UP_RULE = "/etc/iptables.up.rules"
+
+
+class Rule():
+
+    def __init__(self, source, destination, port):
+        self.source = source
+        self.destination = destination
+        self.port = port
+
+    def line(self, line=None):
+
+        accept_line = "-A INPUT -p tcp --dport %s -j ACCEPT" % self.port
+        line = accept_line + " -s %s -d %s" % (self._join_ips(self.source), self.destination)
+
+        return line
+
+    def _join_ips(self, ip_list, ips=""):
+        if not isinstance(ip_list, list):
+            ip_list = [ip_list]
+        for ip in ip_list:
+            ips+="%s," % ip
+        return ips[:-1]
+
+
+class IPTablesSetup(TemplateBasedSetup, BaseTask):
+    """
+    Execute following on the server, when you don't no a port who is used:
+    iptables -A INPUT  -j LOG ! -d 10.211.55.255/32 --log-prefix "iptables IN: "
+    """
+
+    IPTABLES_BIN = "iptables"
+    CONFIG_DIR = "/etc/iptables.conf.d"
+    HEADER_BASE_CONFIG = "iptables_header"
+    FOOTER_BASE_CONFIG = "iptables_footer"
+    SERVICES_CONFIG_DIR = CONFIG_DIR + "/services"
+
+    DESTINATION_ALL = "0.0.0.0/0"
+    SOURCE_ALL = "0.0.0.0/0"
+    LOOPBACK = "127.0.0.0/8"
+
+    def __init__(self):
+        from golive.stacks.stack import config
+        super(IPTablesSetup, self).__init__()
+
+    def prepare_rules(self, allow_list):
+        rules = []
+        for allow in allow_list:
+            rule = Rule(
+                allow[0],
+                allow[1],
+                allow[2]
+            )
+
+            rules.append(rule)
+        self.rules = rules
+        return rules
+
+    def set_rules(self, id, counter=0):
+        configfile = "%s/%s_%s_%s" % (
+            IPTablesSetup.SERVICES_CONFIG_DIR,
+            "rules",
+            id,
+            config['USER']
+        )
+
+        # clear file
+        BaseTask.sudo("echo > %s" % configfile)
+
+        for rule in self.rules:
+            # append rule to file
+            BaseTask.sudo("echo \"%s\" >> %s" % (rule.line(), configfile))
+
+        self.activate()
+
+        return counter
+
+    def activate(self):
+        # add header to global file
+        self.set_local_filename("golive/iptables/iptables_basic")
+        headerfile = os.path.join(IPTablesSetup.CONFIG_DIR, IPTablesSetup.HEADER_BASE_CONFIG)
+        self.set_destination_filename(headerfile)
+        tempfile = self.load_and_render_to_tempfile(self.local_filename, **self.context_data)
+        self.put_sudo(tempfile, self.destination_filename)
+        self.chown(self.destination_filename, "root:root")
+
+        # add footer to global file
+        self.set_local_filename("golive/iptables/iptables_last")
+        footerfile = os.path.join(IPTablesSetup.CONFIG_DIR, IPTablesSetup.FOOTER_BASE_CONFIG)
+        self.set_destination_filename(footerfile)
+        tempfile = self.load_and_render_to_tempfile(self.local_filename, **self.context_data)
+        self.put_sudo(tempfile, self.destination_filename)
+        self.chown(self.destination_filename, "root:root")
+
+        # merge the files
+        mergedfile = os.path.join(IPTablesSetup.CONFIG_DIR, "all")
+        self.sudo("cat %s > %s" % (headerfile, mergedfile))
+        self.sudo("cat %s/* >> %s" % (IPTablesSetup.SERVICES_CONFIG_DIR, mergedfile))
+        self.sudo("cat %s >> %s" % (footerfile, os.path.join(IPTablesSetup.CONFIG_DIR, "all")))
+
+        # activate the configuration
+        self.sudo("iptables-restore < %s" % mergedfile)
+
+    def init(self):
+
+        # initialize the basic iptables setup only once
+        self.deploy()
+        self.post_deploy()
+
+    def deploy(self):
+        env.user = config['USER']
+        #self.set_rules()
+
+        # create temporary local file
+        tempfile = self.load_and_render_to_tempfile(self.local_filename, **self.context_data)
+
+        # add last
+        self.set_local_filename("golive/iptables/iptables_last")
+        content = self.load_and_render(self.local_filename, **self.context_data)
+        open(tempfile, "a").write(content)
+
+        # send file
+        self.put_sudo(tempfile, self.destination_filename)
+
+    def post_deploy(self):
+        self.sudo("iptables-restore < %s" % self.destination_filename)

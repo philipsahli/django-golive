@@ -96,7 +96,13 @@ class Environment(object):
         hosts = []
         for role in self.roles:
             hosts.append(role.hosts)
-        return [item for sublist in hosts for item in sublist]
+        hosts = self._unique(hosts)
+        return hosts
+
+    def _unique(self, ls):
+        lt = []
+        lt += set([item for sublist in ls for item in sublist])
+        return lt
 
     def get_role(self, role):
         for drole in self.roles:
@@ -117,6 +123,7 @@ class Stack(object):
     INIT = "init"
     DEPLOY = "deploy"
     UPDATE = "update"
+    STATUS = "status"
     SET_VAR = "set_var"
     CONFIG = "golive.yml"
     DEFAULTS = "DEFAULTS"
@@ -207,6 +214,7 @@ class Stack(object):
         mod.environment = self.environment
 
     def do(self, job, task=None, role=None, full_args=None):
+        import pdb; pdb.set_trace()
         # make stack config available to tasks
         self._set_stack_config()
 
@@ -221,6 +229,8 @@ class Stack(object):
                 self.deploy_all()
         elif job == Stack.UPDATE:
             self.update()
+        elif job == Stack.STATUS:
+            self.status()
         elif job == Stack.SET_VAR:
             self.set_var(full_args)
         else:
@@ -255,6 +265,9 @@ class Stack(object):
 
     def update(self):
         self._execute_tasks(Stack.UPDATE)
+
+    def status(self):
+        self._execute_tasks(Stack.STATUS)
 
     def deploy(self, selected_task=None, selected_role=None):
         if selected_task:
@@ -306,8 +319,27 @@ class Stack(object):
                     try:
                         task_class = task._load_module()
                         task_obj = task_class()
-                        method_impl = getattr(task_obj, method)
-                        method_impl()
+                        # try to get method
+                        try:
+                            # execute pre
+                            method_impl_pre = self._get_method(task_obj, "pre_" + method)
+                            method_impl_pre()
+                        except AttributeError:
+                            #print "No task pre_'%s' to execute" % method
+                            pass
+                        try:
+                            # execute
+                            method_impl = self._get_method(task_obj, method)
+                            method_impl()
+                        except AttributeError:
+                            print "No task '%s' to execute" % method
+                            # execute post
+                        try:
+                            method_impl_post = self._get_method(task_obj, "post_" + method)
+                            method_impl_post()
+                        except AttributeError:
+                            #print "No task post_'%s' to execute" % method
+                            pass
                     except UnboundLocalError:
                         print "Task %s not found" % task.module_string
                         sys.exit(1)
@@ -316,6 +348,10 @@ class Stack(object):
     def _prepare_env(self, role):
         env.roledefs.update({role: role.hosts})
         env.hosts = role.hosts
+
+    def _get_method(self, obj, method):
+        method_impl = getattr(obj, method)
+        return method_impl
 
     @property
     def role_count(self):

@@ -2,7 +2,7 @@ import tempfile
 from django.test import TestCase
 import yaml
 from mock import patch
-from golive.layers.base import UserSetup
+from golive.layers.base import UserSetup, IPTablesSetup, Rule, BaseTask
 from golive.stacks.stack import StackFactory, Stack
 
 
@@ -205,3 +205,61 @@ class ManagementCommandTest(TestCase):
         pass
 
 
+class IPTableTest(TestCase):
+
+    def setUp(self):
+        super(IPTableTest, self).setUp()
+
+    def test_rule_objects_and_iptables_line_for_all_destination(self):
+        self.allow = [(['hosta', 'hostb'], IPTablesSetup.DESTINATION_ALL, "1111")]
+        rules = IPTablesSetup().prepare_rules(self.allow)
+        self.assertIsInstance(rules, list)
+        self.assertIsInstance(rules[0], Rule)
+        self.assertIs(len(rules), 1)
+        self.assertEquals(rules[0].line(),
+                      "-A INPUT -p tcp --dport 1111 -j ACCEPT -s hosta,hostb -d 0.0.0.0/0")
+
+    def test_rule_objects_and_iptables_line_for_all_source(self):
+        self.allow = [(IPTablesSetup.SOURCE_ALL, IPTablesSetup.DESTINATION_ALL, "1111")]
+
+        rules = IPTablesSetup().prepare_rules(self.allow)
+        self.assertIsInstance(rules, list)
+        self.assertIsInstance(rules[0], Rule)
+        self.assertIs(len(rules), 1)
+        self.assertEquals(rules[0].line(),
+                      "-A INPUT -p tcp --dport 1111 -j ACCEPT -s 0.0.0.0/0 -d 0.0.0.0/0")
+
+    def test_rule_objects_and_iptables_line_from_local_only(self):
+        self.allow = [(IPTablesSetup.LOOPBACK, IPTablesSetup.DESTINATION_ALL, "1111")]
+
+        rules = IPTablesSetup().prepare_rules(self.allow)
+        self.assertIsInstance(rules, list)
+        self.assertIsInstance(rules[0], Rule)
+        self.assertIs(len(rules), 1)
+        self.assertEquals(rules[0].line(),
+                      "-A INPUT -p tcp --dport 1111 -j ACCEPT -s 127.0.0.0/8 -d 0.0.0.0/0")
+
+    @patch.object(BaseTask, "run")
+    @patch.object(BaseTask, "execute_on_host")
+    def test_rules_set_on_hosts_already_defined(self, mock_execute_on_host, mock_run):
+
+        mock_run.return_value = {'golive1': '0'}
+        mock_execute_on_host.return_value = {'golive1': '0'}
+
+        self.allow = [(['hosta', 'hostb'], IPTablesSetup.DESTINATION_ALL, "1111")]
+        iptables = IPTablesSetup()
+        iptables.prepare_rules(self.allow)
+        counter = iptables.set_rules("TestTask")
+        self.assertIs(counter, 0)
+
+    @patch('golive.stacks.stack.config', {'USER': "usera"})
+    @patch.object(BaseTask, "run")
+    @patch.object(BaseTask, "execute_on_host")
+    def test_rules_set_on_hosts_new(self, mock_execute_on_host, mock_run):
+        mock_run.return_value = {'golive1': '1'}
+        mock_execute_on_host.return_value = {'golive1': '0'}
+        self.allow = [(['hosta', 'hostb'], IPTablesSetup.DESTINATION_ALL, "1111")]
+        iptables = IPTablesSetup()
+        iptables.prepare_rules(self.allow)
+        counter = iptables.set_rules("TestTask")
+        self.assertIs(counter, 1)
