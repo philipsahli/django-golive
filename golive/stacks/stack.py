@@ -139,19 +139,21 @@ class Stack(object):
         self.environment_name = environment
         self.environment = Environment(self.environment_name)
 
-        # read it
-        self.configfile = self.read_stackconfigfile()
+        self._set_configfile()
 
         # parse it
-        self.parse()
+        self._parse()
 
     def __str__(self):
         return "Stack: %s" % self.name
 
+    def _set_configfile(self):
+        self.configfile = self._read_stackconfigfile()
+
     def _read_userconfigfile(self):
         return  open(Stack.CONFIG, 'r')
 
-    def parse(self):
+    def _parse(self):
         # load stack config (tasks for roles)
         stack_config = yaml.load(self.configfile)
 
@@ -201,7 +203,7 @@ class Stack(object):
                 hosts = []
             self.get_role(role).hosts = hosts
 
-    def read_stackconfigfile(self):
+    def _read_stackconfigfile(self):
         pmd = sys.modules['golive.stacks'].__path__[0]
         configfile = file("%s/%s.yaml" % (pmd, self.name.lower()), "r")
         return configfile
@@ -214,7 +216,6 @@ class Stack(object):
         mod.environment = self.environment
 
     def do(self, job, task=None, role=None, full_args=None):
-        import pdb; pdb.set_trace()
         # make stack config available to tasks
         self._set_stack_config()
 
@@ -257,6 +258,9 @@ class Stack(object):
                 args = ("$HOME/.golive.rc", "export %s=%s" % (key, value))
                 execute(append, *args, host=host)
 
+    ######
+    # TASKS
+    ######
     def initialize(self):
         self._execute_tasks(Stack.INIT)
 
@@ -277,7 +281,13 @@ class Stack(object):
 
         self._execute_tasks(Stack.DEPLOY)
 
+    #####
+    # Cleanup
+    #####
     def _cleanout_role(self, selected_role):
+        """
+        Removes a role from the environment
+        """
         selected_roles = []
         for role_idx, role in enumerate(environment.roles):
             if role.name == selected_role:
@@ -298,6 +308,9 @@ class Stack(object):
                 selected_roles_for_task.append(role)
             environment.roles = selected_roles_for_task
 
+    ######
+    # Execution
+    ######
     def _execute_tasks(self, method):
         print "Executing '%s'" % method
         for role in self.environment.roles:
