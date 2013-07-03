@@ -15,18 +15,18 @@ class Command(BaseCommand):
 
 ENVIRONMENTS:
     DEFAULTS:
-        INIT_USER: fatrix
-        PROJECT_NAME: django_example
-        PUBKEY: $HOME/user.pub
+        INIT_USER: root
+        PROJECT_NAME: djangoproject
+        PUBKEY: $HOME/.ssh/id_dsa.pub
     TESTING:
-        SERVERNAME: golive-sandbox1
+        SERVERNAME: testserver
         ROLES:
             APP_HOST:
-                - testbox1
+                - testserver
             DB_HOST:
-                - testbox1
+                - testserver
             WEB_HOST:
-                - testbox1"""
+                - testserver"""
 
     def handle(self, *args, **options):
 
