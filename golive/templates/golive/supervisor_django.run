@@ -1,6 +1,9 @@
 #!/bin/bash
 echo "Starting {{ APPNAME }}"
 
+export LC_ALL='en_US.UTF-8'
+export LANG='en_US.UTF-8'
+
 # export the variables in .golive.rc
 for key_val in $(cat $HOME/.golive.rc); do
    if [[ $key_val != "export" ]]; then
