@@ -229,6 +229,7 @@ class BaseSetup(BaseTask, DebianPackageMixin, PyPackageMixin):
 
     def _secure_sshd(self):
         # don't allow authentication with passwords
+        env.user = config['USER']
         self.append("/etc/ssh/sshd_config", "PasswordAuthentication no")
         # reload
         self.sudo("/etc/init.d/ssh reload")
@@ -319,7 +320,7 @@ class UserSetup(BaseTask):
             self.sudo("chmod 600 /home/%s/.ssh/authorized_keys2" % user)
             self.sudo("chown %s:%s /home/%s/.ssh/authorized_keys2" % (user, user, user))
 
-        self.append("/home/%s/.ssh/authorized_keys2" % user, self.readfile(pubkey_file))
+        self.append("/home/%s/.ssh/authorized_keys2" % user, self.readfile(os.path.expanduser(pubkey_file)))
 
         env.user = config['USER']
 
@@ -370,6 +371,8 @@ class IPTablesSetup(TemplateBasedSetup, BaseTask):
 
     def __init__(self):
         from golive.stacks.stack import config
+        env.user = config['USER']
+
         super(IPTablesSetup, self).__init__()
 
     def prepare_rules(self, allow_list):
@@ -385,12 +388,14 @@ class IPTablesSetup(TemplateBasedSetup, BaseTask):
         self.rules = rules
         return rules
 
-    def set_rules(self, id, counter=0):
+    def set_rules(self, id):
+        from golive.stacks.stack import config
+        env.user = config['USER']
         configfile = "%s/%s_%s_%s" % (
             IPTablesSetup.SERVICES_CONFIG_DIR,
             "rules",
             id,
-            config['USER']
+            env.user,
         )
 
         # clear file
@@ -401,8 +406,6 @@ class IPTablesSetup(TemplateBasedSetup, BaseTask):
             BaseTask.sudo("echo \"%s\" >> %s" % (rule.line(), configfile))
 
         self.activate()
-
-        return counter
 
     def activate(self):
         # add header to global file
@@ -438,7 +441,6 @@ class IPTablesSetup(TemplateBasedSetup, BaseTask):
 
     def deploy(self):
         env.user = config['USER']
-        #self.set_rules()
 
         # create temporary local file
         tempfile = self.load_and_render_to_tempfile(self.local_filename, **self.context_data)
