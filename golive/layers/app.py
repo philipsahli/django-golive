@@ -17,6 +17,7 @@ class PythonSetup(BaseTask, DebianPackageMixin):
 
     def init(self, update=True):
         DebianPackageMixin.init(self, update)
+        env.user = config['USER']
         self.execute(run, "test -d .virtualenvs/%s || virtualenv --no-site-packages .virtualenvs/%s" %
                           (env.project_name,  env.project_name))
 
@@ -34,6 +35,7 @@ class DjangoSetup(BaseTask, DjangoBaseTask):
 
     def __init__(self):
         super(DjangoSetup, self).__init__()
+        env.user = config['USER']
         self.set_supervisor_appname()
 
     def set_supervisor_appname(self):
@@ -142,6 +144,7 @@ class DjangoSetup(BaseTask, DjangoBaseTask):
         """
         Synchronize the project to the remote server(s).
         """
+        env.user = config['USER']
         env.remote_home = "/home/" + env.user
         self.execute(rsync_project, "%s/code/" % env.remote_home, os.getcwd(), ["*.pyc", "*.log", "**.git/*"], True)
 

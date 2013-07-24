@@ -5,7 +5,7 @@ import time
 from fabric.api import run as remote_run
 from fabric.context_managers import settings, hide
 from fabric.contrib.files import exists, append
-from fabric.operations import sudo, put, get, os
+from fabric.operations import sudo, put, get, os, run
 from fabric.state import env
 from fabric.tasks import execute
 from django.template import loader, Context
@@ -65,6 +65,8 @@ class BaseTask(object):
 
     @classmethod
     def sudo(cls, command):
+        if env.user == 'root':
+            return execute(run, command)
         return execute(sudo, command)
 
     def mkdir(self, path):
@@ -167,11 +169,12 @@ class TemplateBasedSetup(BaseTask):
 class DebianPackageMixin():
 
     def init(self, update=True):
+        env.user = config['INIT_USER']
         if getattr(self.__class__, 'package_name', None):
             with settings(warn_only=True):
                 if update:
-                    self.execute(sudo, "apt-get update")
-                return self.execute(sudo, "apt-get -y install %s" % self.__class__.package_name)
+                    self.sudo("apt-get update")
+                return self.sudo("apt-get -y install %s" % self.__class__.package_name)
 
     #def remove(self):
     #    self.execute(sudo, "apt-get remove -y %s" % self.__class__.package_name)
@@ -273,20 +276,22 @@ class SupervisorSetup(DebianPackageMixin, TemplateBasedSetup):
             time.sleep(5)        # let supervisor do his work first
 
 
-class UserSetup(BaseTask):
-
+class UserSetup(BaseTask, DebianPackageMixin):
+    package_name = 'sudo'
     ROLES = "ALL"
 
     def _useradd(self):
-        user = config['USER']
+        env.user = config['INIT_USER']
         with hide("warnings"):
-            sudo("useradd -s /bin/bash -m %s" % user)
+            self.sudo("useradd -s /bin/bash -m %s" % config['USER'])
 
     def init(self):
         # create baseuser
         from golive.stacks.stack import config
 
         env.user = config['INIT_USER']
+        DebianPackageMixin.init(self, update=True)
+
         env.project_name = config['PROJECT_NAME']
         user = config['USER']
 
