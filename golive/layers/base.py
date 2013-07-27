@@ -11,7 +11,7 @@ from fabric.tasks import execute
 from django.template import loader, Context
 
 from golive.stacks.stack import config, environment
-import golive.utils
+from golive.utils import info, resolve_host, debug
 
 
 class BaseTask(object):
@@ -20,6 +20,7 @@ class BaseTask(object):
         # TODO: allow custom packages to be installed
         super(BaseTask, self).__init__()
 
+    # Tasks
     def pre_init(self):
         pass
 
@@ -41,11 +42,22 @@ class BaseTask(object):
     def pre_update(self):
         pass
 
+    def post_backup(self):
+        pass
+
+    def backup(self):
+        pass
+
+    def restore(self):
+        pass
+
     def update(self):
         pass
 
     def post_update(self):
         pass
+
+    # End Tasks
 
     def run(self, command, fail_silently=False):
         if fail_silently:
@@ -174,6 +186,7 @@ class DebianPackageMixin():
             with settings(warn_only=True):
                 if update:
                     self.sudo("apt-get update")
+                    info("INSTALL: %s" % self.__class__.package_name)
                 return self.sudo("apt-get -y install %s" % self.__class__.package_name)
 
     #def remove(self):
@@ -243,7 +256,7 @@ class BaseSetup(BaseTask, DebianPackageMixin, PyPackageMixin):
         """
         from golive.stacks.stack import environment
         for host in environment.hosts:
-            ip = golive.utils.resolve_host(host)
+            ip = resolve_host(host)
             self.append("/etc/hosts", "%s %s" % (ip, host))
 
 
@@ -282,6 +295,7 @@ class UserSetup(BaseTask, DebianPackageMixin):
 
     def _useradd(self):
         env.user = config['INIT_USER']
+        info("USER: create user %s" % config['USER'])
         with hide("warnings"):
             self.sudo("useradd -s /bin/bash -m %s" % config['USER'])
 
@@ -295,16 +309,19 @@ class UserSetup(BaseTask, DebianPackageMixin):
         env.project_name = config['PROJECT_NAME']
         user = config['USER']
 
+        info("SUDO: configure for user %s" % env.user)
         with settings(warn_only=True):
             # create user
             self.execute(self._useradd)
             # add to sudo
             self.append_with_inituser("/etc/sudoers", "%s ALL=NOPASSWD: ALL" % user, user=env.user)
 
+        pip_cache_dir = "/var/cache/pip"
+        debug("PIP: Create cache dir %s" % pip_cache_dir)
         with settings(warn_only=True):
             with hide("warnings"):
-                self.sudo("mkdir /var/cache/pip")
-                self.sudo("chmod 777 /var/cache/pip")
+                self.sudo("mkdir %s" % pip_cache_dir)
+                self.sudo("chmod 777 %s" % pip_cache_dir)
 
         # create rc file
         with settings(warn_only=True):
@@ -316,6 +333,7 @@ class UserSetup(BaseTask, DebianPackageMixin):
 
         # setup ssh pub-auth for user
         pubkey_file = config['PUBKEY']
+        info("PUBKEY: Put %s to authorized_keys2" % pubkey_file)
         with settings(warn_only=True):
             with hide("warnings"):
                 self.sudo("mkdir /home/%s/.ssh/" % user)
@@ -402,6 +420,9 @@ class IPTablesSetup(TemplateBasedSetup, BaseTask):
             id,
             env.user,
         )
+
+        for rule in self.rules:
+            info("IPTABLES: allow %s -> %s, tcp/%s" % (rule.source, rule.destination, rule.port))
 
         # clear file
         BaseTask.sudo("echo > %s" % configfile)
