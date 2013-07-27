@@ -1,8 +1,12 @@
+import glob
 import sys
+import datetime
 from fabric.contrib.files import append, contains, sed
-from fabric.state import env
+from fabric.operations import run, get, put, prompt, os
+from fabric.state import env, output
 import yaml
 from fabric.tasks import execute
+from golive.utils import info, debug
 
 config = None
 environment = None
@@ -12,13 +16,15 @@ class StackFactory(object):
     @classmethod
     def get(cls, stackname):
 
-        if "CLASSIC" in stackname:
+        #if "CLASSIC" in stackname:
+        try:
             return Stack(stackname)
-        elif stackname == "GUNICORNED":
-            return Stack(stackname)
-        elif stackname == "GUNICELERY":
-            return Stack(stackname)
-        else:
+        #elif stackname == "GUNICORNED":
+        #    return Stack(stackname)
+        #elif stackname == "GUNICELERY":
+        #    return Stack(stackname)
+        #else:
+        except Exception:
             raise Exception("Stack '%s' not found" % stackname)
 
 
@@ -30,10 +36,10 @@ class Task(object):
         self.module_string = module
 
     def __str__(self):
-        return "Task: %s" % self.module_string
+        return "%s" % self.module_string
 
     def __repr__(self):
-        return "Task: %s" % self.module_string
+        return "%s" % self.module_string
 
     @property
     def module(self):
@@ -69,7 +75,7 @@ class Role(object):
         self.hosts = []
 
     def __str__(self):
-        return "Role: %s (Tasks: %s)" % (self.name, self.tasks)
+        return "%s (Tasks: %s)" % (self.name, self.tasks)
 
     def add_task(self, task):
         self.tasks.append(task)
@@ -125,6 +131,9 @@ class Stack(object):
     UPDATE = "update"
     STATUS = "status"
     SET_VAR = "set_var"
+    BACKUP = "backup"
+    RESTORE = "restore"
+
     CONFIG = "golive.yml"
     DEFAULTS = "DEFAULTS"
 
@@ -134,6 +143,13 @@ class Stack(object):
         self.environments = []
         self.environment_name = None
         self.environment = None
+
+        # setup output for fabric
+
+        output['warnings'] = False
+        output['status'] = False
+        output['user'] = False
+        output['running'] = False
 
     def setup_environment(self, environment):
         self.environment_name = environment
@@ -182,6 +198,11 @@ class Stack(object):
             self.environment.add_role(role_obj)
 
         self.host_to_roles()
+
+        # put timestamp to environment
+        now = datetime.datetime.now()
+        ts = now.strftime("%Y%m%d%H%M%S")
+        self.environment_config['TS'] = ts
 
     def _set_user(self):
         # custom uer is defined in DEFAULTS no further action needed
@@ -234,10 +255,13 @@ class Stack(object):
             self.status()
         elif job == Stack.SET_VAR:
             self.set_var(full_args)
+        elif job == Stack.BACKUP:
+            self.backup()
+        elif job == Stack.RESTORE:
+            self.restore()
         else:
             raise Exception("Job '%s' unknown" % job)
 
-    # TODO: extract to Task (SetVarTask)
     def set_var(self, full_args):
         key, value = "GOLIVE_%s" % full_args[1], full_args[2]
         env.user = config['USER']
@@ -272,6 +296,68 @@ class Stack(object):
 
     def status(self):
         self._execute_tasks(Stack.STATUS)
+
+    def backup(self):
+        self._execute_tasks(Stack.BACKUP)
+
+        # finally pack and download
+        # at the moment only from database server
+        # we assume that uploads or media files are on shared storage like S3
+
+        ts = config['TS']
+        backup_dir = config['BACKUP_DIR']
+        backup_file = "backup_%s_%s-%s.tgz" % (config['PROJECT_NAME'], config['ENV_ID'], ts)
+        host = self.environment.get_role("DB_HOST").hosts[0]
+
+        info("BACKUP: Pack and download backup to %s" % os.path.join(os.path.curdir, backup_file))
+        from golive.layers.base import BaseTask
+        BaseTask.execute_on_host(run, host, "cd %s && tar -zcvf ../%s ." % (backup_dir, backup_file))
+        # delete temp directory
+        BaseTask.execute_on_host(run, host, "rm -rf %s" % backup_dir)
+        # get backup tgz
+        BaseTask.execute_on_host(get, host, backup_file, ".")
+
+    def restore(self):
+        self.ts = config['TS']
+        env.user = config['USER']
+        self.backup_dir = "$HOME/tmp_%s" % self.ts
+        config['BACKUP_DIR'] = self.backup_dir
+
+        # get all tgz files
+        file_list = glob.glob("backup*%s*tgz" % config['ENV_ID'])
+        sfile_list = ""
+        for index, file in enumerate(file_list):
+            if index > 0:
+                sfile_list += "\r\n"
+            sfile_list += "[%s] %s" % (index+1, file)
+
+        print sfile_list
+
+        try:
+            selected = int(prompt("Which backup should be applied?")) - 1
+        except ValueError:
+            print "No file selected"
+            sys.exit(0)
+
+        file_path = file_list[selected]
+        config['FILE_PATH'] = file_path
+
+        ts = config['TS']
+        host = self.environment.get_role("DB_HOST").hosts[0]
+
+        from golive.layers.base import BaseTask
+        # upload backup file and extract
+        info("DB: upload and extract dump %s" % file_path)
+        BaseTask.execute_on_host(put, host, file_path)
+        BaseTask.execute_on_host(run, host, "tar -zxvf %s " % os.path.basename(file_path))
+
+        # create and save dumpfilename
+        config['BACKUP_DUMPFILE'] = file_path.replace("backup_", "db_").replace("tgz", "dump")
+
+        info("DB: start restore of dump %s" % config['BACKUP_DUMPFILE'])
+
+        # restore
+        self._execute_tasks(Stack.RESTORE)
 
     def deploy(self, selected_task=None, selected_role=None):
         if selected_task:
@@ -312,23 +398,20 @@ class Stack(object):
     # Execution
     ######
     def _execute_tasks(self, method):
-        print "Executing '%s'" % method
+        #d = {
+        #    'environment_name': config['ENV_ID'],
+        #    'method': method,
+        #}
+        debug("config: "+str(config))
+        debug("environment_config: "+str(self.environment_config))
+        info("***** START")
         for role in self.environment.roles:
+            info("* ROLE %s" % role)
             if role.has_hosts():
                 # prepare env for fabric
                 self._prepare_env(role)
-                print "****************************** "
-                print "Role: %s" % str(role.name)
-                print "        %s:" % "Hosts"
-                for host in role.hosts:
-                    print "              %s" % host
+                info("** HOSTS %s" % role.hosts)
                 for task in role.tasks:
-                    print "        %s" % task
-                print "****************************** "
-                for task in role.tasks:
-                    print "---------- "
-                    print str(task)
-                    print "---------- "
                     try:
                         task_class = task._load_module()
                         task_obj = task_class()
@@ -336,34 +419,37 @@ class Stack(object):
                         try:
                             # execute pre
                             method_impl_pre = self._get_method(task_obj, "pre_" + method)
-                            method_impl_pre()
+                            if method_impl_pre:
+                                debug("EXECUTE %s" % method_impl_pre.__name__)
+                                method_impl_pre()
                         except AttributeError:
-                            #print "No task pre_'%s' to execute" % method
                             pass
                         try:
                             # execute
                             method_impl = self._get_method(task_obj, method)
-                            method_impl()
+                            if method_impl:
+                                info("*** TASK %s" % task)
+                                debug("EXECUTE %s" % method_impl.__name__)
+                                method_impl()
                         except AttributeError:
-                            print "No task '%s' to execute" % method
-                            # execute post
+                            pass
                         try:
                             method_impl_post = self._get_method(task_obj, "post_" + method)
-                            method_impl_post()
-                        except AttributeError:
-                            #print "No task post_'%s' to execute" % method
-                            pass
-                    except UnboundLocalError:
-                        print "Task %s not found" % task.module_string
-                        sys.exit(1)
-                print ""
+                            if method_impl_post:
+                                debug("EXECUTE %s" % method_impl_post.__name__)
+                                method_impl_post()
+                        except AttributeError, e:
+                            raise e
+                    except UnboundLocalError, e:
+                        raise e
+        info("***** END")
 
     def _prepare_env(self, role):
         env.roledefs.update({role: role.hosts})
         env.hosts = role.hosts
 
     def _get_method(self, obj, method):
-        method_impl = getattr(obj, method)
+        method_impl = getattr(obj, method, None)
         return method_impl
 
     @property

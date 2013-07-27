@@ -9,6 +9,7 @@ import django
 
 from base import *
 from golive.stacks.stack import config, environment
+from golive.utils import error
 
 
 class PythonSetup(BaseTask, DebianPackageMixin):
@@ -18,6 +19,7 @@ class PythonSetup(BaseTask, DebianPackageMixin):
     def init(self, update=True):
         DebianPackageMixin.init(self, update)
         env.user = config['USER']
+        info("PYTHON: create virtualenv")
         self.execute(run, "test -d .virtualenvs/%s || virtualenv --no-site-packages .virtualenvs/%s" %
                           (env.project_name,  env.project_name))
 
@@ -25,7 +27,7 @@ class DjangoBaseTask():
     def manage(self, command):
         with prefix('. %s/.virtualenvs/%s/bin/activate' % (env.remote_home, env.project_name)):
             with cd("%s/code/%s" % (env.remote_home, env.project_name)):
-                self.run(". %s/.golive.rc && python manage.py %s" % (env.remote_home, command))
+                return self.run(". %s/.golive.rc && python manage.py %s" % (env.remote_home, command))
 
 
 class DjangoSetup(BaseTask, DjangoBaseTask):
@@ -42,6 +44,7 @@ class DjangoSetup(BaseTask, DjangoBaseTask):
         self.supervisor_appname = "%s_%s" % (config['PROJECT_NAME'], config['ENV_ID'])
 
     def init(self):
+        info("DJANGO: create basic directories in $HOME")
         self.mkdir("/home/%s/code" % config['USER'])
         self.mkdir("/home/%s/log" % config['USER'])
         self.mkdir("/home/%s/static" % config['USER'])
@@ -81,16 +84,24 @@ class DjangoSetup(BaseTask, DjangoBaseTask):
         self._start()
 
     def _stop(self):
+        info("DJANGO: stop procs with supervisorctl")
         self.execute(sudo, "supervisorctl stop %s" % self.supervisor_appname)
 
     def _status(self):
-        return self.execute(sudo, "supervisorctl status %s" % self.supervisor_appname)
+        out = self.execute(sudo, "supervisorctl status %s" % self.supervisor_appname)
+        if "RUNNING" in out:
+            info("WORKER RUNNING")
+        else:
+            error("WORKER NOT RUNNING")
+        debug(out)
+        return
 
     def _start(self):
+        info("DJANGO: start procs with supervisorctl")
         self.execute(sudo, "supervisorctl start %s" % self.supervisor_appname)
 
     def _collecstatic(self):
-
+        info("DJANGO: manage collectstatic")
         self.manage("collectstatic --noinput --settings=%s" % self._settings_modulestring())
 
     def _settings_modulestring(self):
@@ -129,8 +140,7 @@ class DjangoSetup(BaseTask, DjangoBaseTask):
         supervisor.post_deploy()
 
     def status(self):
-        print "STATUS"
-        print self._status()
+        self._status()
 
     def _port(self):
         """
@@ -154,8 +164,12 @@ class DjangoSetup(BaseTask, DjangoBaseTask):
         env.user = config['USER']
         env.remote_home = "/home/" + config['USER']
 
+        virtualenv_dir = '%s/.virtualenvs/%s' % (env.remote_home, env.project_name)
+        pip_mirror = "http://c.pypi.python.org/simple"
+
+        info("DJANGO: install python modules in virtualenv %s" % virtualenv_dir)
         # from requirements.txt
-        with prefix('. %s/.virtualenvs/%s/bin/activate' % (env.remote_home, env.project_name)):
+        with prefix('. %s/bin/activate' % virtualenv_dir):
             with cd("%s/code/%s" % (env.remote_home, env.project_name)):
                 self.execute(run, "pip install -i http://c.pypi.python.org/simple --download-cache=/var/cache/pip -r requirements.txt")
 
@@ -164,12 +178,14 @@ class DjangoSetup(BaseTask, DjangoBaseTask):
             for package in self.__class__.python_packages.split(" "):
                 with prefix('. %s/.virtualenvs/%s/bin/activate' % (env.remote_home, env.project_name)):
                     with cd("%s/code/%s" % (env.remote_home, env.project_name)):
-                        self.execute(run, "pip install -i http://c.pypi.python.org/simple --download-cache=/var/cache/pip %s" % package)
+                        self.execute(run, "pip install -i %s --download-cache=/var/cache/pip %s" % (pip_mirror, package))
 
     @runs_once
     def _syncdb(self):
+        info("DJANGO: synchronize database schema")
         self._prepare_db()
-        self.manage("syncdb --noinput --settings=%s" % self._settings_modulestring())
+        out = self.manage("syncdb --noinput --settings=%s" % self._settings_modulestring())
+        info("DJANGO: %s" % out['golive-sandbox1'])
         # TODO: migratedb if south installed
 
     def _prepare_db(self):
@@ -188,6 +204,7 @@ class DjangoSetup(BaseTask, DjangoBaseTask):
         self.execute_once(run, ("echo \"%s\" | sudo su - postgres -c psql" % sql))
         with settings(warn_only=True):
             # create database
+            info("DJANGO: create database %s" % db_name)
             execute(sudo, ("su - postgres -c \"createdb -U postgres -O %s -E UTF8 -T template0 %s\"" % (
                 config['USER'],
                 db_name)), hosts=[db_host])

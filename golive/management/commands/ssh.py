@@ -2,7 +2,7 @@ import os
 from django.core.management import BaseCommand
 from fabric.state import output
 import sys
-from golive.stacks.stack import StackFactory
+from golive.stacks.stack import StackFactory, config
 import yaml
 
 
@@ -23,9 +23,11 @@ class Command(BaseCommand):
 
         # execute
         hosts = self.stack.environment.hosts
+        user = self.stack.environment_config['USER']
+        print user
         if len(hosts) > 1:
             self.stderr.write('Multiple hosts possible\n')
             sys.exit(1)
 
         # login
-        os.execvp("ssh", ("ssh", "-x", self.stack.environment.hosts[0]))
+        os.execvp("ssh", ("ssh", "-x", "-l",  user, self.stack.environment.hosts[0]))
