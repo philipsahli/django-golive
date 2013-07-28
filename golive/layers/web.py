@@ -55,7 +55,8 @@ class NginxSetup(DebianPackageMixin, TemplateBasedSetup):
 
     def _call(self):
         if "test" not in sys.argv:
-            return local("%s http://%s" % (self.CMD_CURL, config['SERVERNAME']), capture=True)
+            out = local("%s http://%s" % (self.CMD_CURL, config['SERVERNAME']), capture=True)
+            return out
 
     def update(self):
         self._call()
@@ -70,10 +71,12 @@ class NginxSetup(DebianPackageMixin, TemplateBasedSetup):
             info("NGINX: %s: %s" % (item[0], state))
             debug("NGINX: %s:\r\n%s" % (item[0], item[1]))
         out = self._call()
-        if OK in out:
-            info("SITE: %s" % self._call())
+        http_line = out.partition("\r\n")[0]
+        if "200" in http_line:
+            info("SITE: %s" % http_line)
         else:
-            error("SITE: %s" % self._call())
+            error("SITE: %s" % http_line)
+            error(out)
 
     def _port(self):
         h = hashlib.sha256("%s_%s" % (config['PROJECT_NAME'], config['ENV_ID']))

@@ -1,10 +1,10 @@
-import inspect
 import os
 import pprint
 import socket
-from django.core.exceptions import ImproperlyConfigured
+import logging
 
-__author__ = 'fatrix'
+from colorlog import ColoredFormatter
+from django.core.exceptions import ImproperlyConfigured
 
 
 def nprint(m):
@@ -21,13 +21,23 @@ def resolve_host(host):
     ip = socket.gethostbyname(host)
     return ip
 
+
+# logging
+
 LOGGER_NAME = "golive"
-ENV_PREFIX = "GOLIVE_"
-
-# import the logging library
-
-import logging
-formatter = logging.Formatter('%(asctime)-15s %(levelname)-6s %(environment_name)-8s %(message)s')
+formatter = ColoredFormatter(
+    #"%(log_color)s%(levelname)-8s%(reset)s %(blue)s%(message)s",
+    '%(log_color)s%(asctime)-15s %(levelname)-6s %(environment_name)-8s %(message)s',
+    datefmt=None,
+    reset=True,
+    log_colors={
+        'DEBUG':    'cyan',
+        'INFO':     'green',
+        'WARNING':  'yellow',
+        'ERROR':    'red',
+        'CRITICAL': 'red',
+        }
+)
 handler = logging.StreamHandler()
 handler.setLevel(logging.INFO)
 handler.setFormatter(formatter)
@@ -55,6 +65,7 @@ def logit(level, message):
     else:
         raise Exception("Loglevel not configured")
 
+
 def info(message):
     logit(logging.INFO, message)
 
@@ -71,12 +82,15 @@ def error(message):
     logit(logging.ERROR, message)
 
 
+ENV_PREFIX = "GOLIVE_"
+
+
 def get_var(var_name):
     """ Get the environment variable or return exception """
     # Taken from twoo scoops book, Thank you guys.
     # https://django.2scoops.org/
     try:
-        return os.environ[ENV_PREFIX+var_name]
+        return os.environ[ENV_PREFIX + var_name]
     except KeyError:
         error_msg = "Set the %s env variable with set_var" % var_name
         raise ImproperlyConfigured(error_msg)

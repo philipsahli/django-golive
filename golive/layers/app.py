@@ -89,10 +89,11 @@ class DjangoSetup(BaseTask, DjangoBaseTask):
 
     def _status(self):
         out = self.execute(sudo, "supervisorctl status %s" % self.supervisor_appname)
-        if "RUNNING" in out:
-            info("WORKER RUNNING")
-        else:
-            error("WORKER NOT RUNNING")
+        for host, result in out.items():
+            if "RUNNING" in result:
+                info("PROCESS RUNNING on %s " % host)
+            else:
+                error("PROCESS NOT RUNNING on %s " % host)
         debug(out)
         return
 

@@ -16,7 +16,7 @@ from golive.stacks.stack import config, environment
 #        if "postgres" in engine:
 #            return PostgresSetup()
 #        raise Exception("Configuration problem")
-from golive.utils import info
+from golive.utils import info, error
 
 
 class PostgresSetup(BaseTask, DjangoBaseTask, DebianPackageMixin):
@@ -24,6 +24,8 @@ class PostgresSetup(BaseTask, DjangoBaseTask, DebianPackageMixin):
     ROLES = "DB_HOST"
 
     CMD_RESTART = "sudo /etc/init.d/postgresql restart"
+    CMD_DB_CHECK = 'echo "\dt"|psql'
+    DB_CHECK_EXPECT_STRING = "List of relations"
     PORT = 5432
 
     def init(self, update=True):
@@ -78,6 +80,14 @@ class PostgresSetup(BaseTask, DjangoBaseTask, DebianPackageMixin):
             info("DB: dropped db %s" % db_name)
         info("DB: db %s not dropped" % db_name)
         restore_file = config['BACKUP_DUMPFILE']
-        output=self.execute_once(run, "psql -f %s postgres " % restore_file).values()[0]
+        output = self.execute_once(run, "psql -f %s postgres " % restore_file).values()[0]
         info("OUTPUT: \r\n%s" % output)
 
+    def status(self):
+        env.user = config['USER']
+        output = self.execute_once(run, self.CMD_DB_CHECK).values()[0]
+        if self.DB_CHECK_EXPECT_STRING in output:
+            info("DB: is OK")
+        else:
+            error("DB: is NOK")
+            error(output)
