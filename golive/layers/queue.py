@@ -10,6 +10,13 @@ class RabbitMqSetup(BaseTask, DebianPackageMixin):
     RABBITMQ_CONFIGFILE = "/etc/rabbitmq/rabbitmq.config"
     RABBIT_INITSCRIPT = "/etc/init.d/rabbitmq-server"
 
+    NAME = "RABBITMQ"
+
+    VAR_BROKER_USER = "GOLIVE_BROKER_USER"
+    VAR_BROKER_PASSWORD = "GOLIVE_BROKER_PASSWORD"
+
+    ROLE = "QUEUE_HOST"
+
     def init(self, update=True):
         # add repo for rabbitmq
         self._add_repo()
@@ -35,7 +42,8 @@ class RabbitMqSetup(BaseTask, DebianPackageMixin):
         self._create_user()
 
     def status(self):
-        print self.run("sudo %s status" % self.__class__.RABBIT_INITSCRIPT)
+        out = self.run("sudo %s status" % self.RABBIT_INITSCRIPT)
+        self._check_output(out, "running_applications", self.NAME)
 
     def _set_listen_port(self):
         self.append(self.__class__.RABBITMQ_CONFIGFILE,
@@ -48,8 +56,8 @@ class RabbitMqSetup(BaseTask, DebianPackageMixin):
         self.sudo("apt-key add rabbitmq-signing-key-public.asc")
 
     def _create_user(self):
-        username = get_remote_envvar('GOLIVE_BROKER_USER', environment.get_role("QUEUE_HOST").hosts[0])
-        password = get_remote_envvar('GOLIVE_BROKER_PASSWORD', environment.get_role("QUEUE_HOST").hosts[0])
+        username = get_remote_envvar(self.VAR_BROKER_USER, environment.get_role(self.ROLE).hosts[0])
+        password = get_remote_envvar(self.VAR_BROKER_PASSWORD, environment.get_role(self.ROLE).hosts[0])
         with settings(warn_only=True):
             self.sudo("rabbitmqctl add_user %s %s" % (username, password))
             self.sudo("rabbitmqctl set_permissions -p / %s \".*\" \".*\" \".*\"" % username)

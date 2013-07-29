@@ -140,6 +140,14 @@ class BaseTask(object):
     def chown(self, filename, user):
         self.execute(sudo, "chown %s %s" % (user, filename))
 
+    def _check_output(self, output, expected_string, msg):
+        for host, result in output.items():
+            if expected_string in result:
+                info("%s on %s: OK" % (msg, host))
+            else:
+                error("%s on %s: NOK" % (msg, host))
+        debug(output)
+
 
 class TemplateBasedSetup(BaseTask):
 

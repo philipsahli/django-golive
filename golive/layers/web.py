@@ -10,6 +10,7 @@ from golive.utils import info, debug, error
 OK="OK"
 NOK="NOK"
 
+
 class NginxSetup(DebianPackageMixin, TemplateBasedSetup):
     package_name = 'nginx'
     configfile = 'golive/nginx.conf'
@@ -21,13 +22,15 @@ class NginxSetup(DebianPackageMixin, TemplateBasedSetup):
     CMD_CURL = "curl -I"
     CMD_PS = "ps -ef|egrep -i nginx|egrep -v grep"
 
+    ROLE = "APP_HOST"
+
     def init(self, update=True):
         DebianPackageMixin.init(self, update)
         self.execute(sudo, self.CMD_RC)
 
     def deploy(self):
         self.set_filename(self.__class__.configfile)
-        app_hosts = environment.get_role("APP_HOST").hosts
+        app_hosts = environment.get_role(self.ROLE).hosts
         self.set_context_data(
             SERVERNAME=config['SERVERNAME'],
             USER=config['USER'],
@@ -62,12 +65,11 @@ class NginxSetup(DebianPackageMixin, TemplateBasedSetup):
         self._call()
 
     def status(self, state=OK):
-
         info("NGINX: Processes on webservers")
         for item in self.run(self.CMD_PS).iteritems():
-            num=len(item[1].splitlines())
+            num = len(item[1].splitlines())
             if num < 2:
-                state=NOK
+                state = NOK
             info("NGINX: %s: %s" % (item[0], state))
             debug("NGINX: %s:\r\n%s" % (item[0], item[1]))
         out = self._call()

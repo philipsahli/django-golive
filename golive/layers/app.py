@@ -91,13 +91,7 @@ class DjangoSetup(BaseTask, DjangoBaseTask):
 
     def _status(self):
         out = self.execute(sudo, "supervisorctl status %s" % self.supervisor_appname)
-        for host, result in out.items():
-            if "RUNNING" in result:
-                info("PROCESS RUNNING on %s " % host)
-            else:
-                error("PROCESS NOT RUNNING on %s " % host)
-        debug(out)
-        return
+        self._check_output(out, "RUNNING", "PROCESS")
 
     def _start(self):
         info("DJANGO: start procs with supervisorctl")
@@ -174,7 +168,11 @@ class DjangoSetup(BaseTask, DjangoBaseTask):
         # from requirements.txt
         with prefix('. %s/bin/activate' % virtualenv_dir):
             with cd("%s/code/%s" % (env.remote_home, env.project_name)):
-                self.execute(run, "pip install -i http://c.pypi.python.org/simple --download-cache=/var/cache/pip -r requirements.txt")
+                cmd = "pip install -i http://c.pypi.python.org/simple " \
+                      "--download-cache=/var/cache/pip " \
+                      "-r requirements.txt"
+                debug("PIP: " + cmd)
+                debug(self.execute(run, cmd))
 
         # from class variable
         if hasattr(self.__class__, "python_packages"):
@@ -188,7 +186,7 @@ class DjangoSetup(BaseTask, DjangoBaseTask):
         info("DJANGO: synchronize database schema")
         self._prepare_db()
         out = self.manage("syncdb --noinput --settings=%s" % self._settings_modulestring())
-        info("DJANGO: %s" % out['golive-sandbox1'])
+        info("DJANGO: %s" % out)
         # TODO: migratedb if south installed
 
     def _prepare_db(self):

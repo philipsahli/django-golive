@@ -38,7 +38,7 @@ class PostgresSetup(BaseTask, DjangoBaseTask, DebianPackageMixin):
             self.append("/etc/postgresql/8.4/main/pg_hba.conf",
                                "host    all         all         %s/32          md5" % host)
         self.append("/etc/postgresql/8.4/main/postgresql.conf", "listen_addresses = '*'")
-        info("RESTART postgres")
+        info("POSTGRES: restart")
         self.execute(run, self.CMD_RESTART)
 
         allow = [(environment.hosts, config['DB_HOST'], self.PORT)]

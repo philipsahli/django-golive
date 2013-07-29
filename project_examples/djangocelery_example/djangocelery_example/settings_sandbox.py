@@ -1,4 +1,4 @@
-import os
+from golive.utils import get_var
 from settings import *
 
 DEBUG = True
@@ -7,8 +7,7 @@ DATABASES['default']['HOST'] = 'golive-sandbox1'
 DATABASES['default']['ENGINE'] = 'django.db.backends.postgresql_psycopg2'
 DATABASES['default']['NAME'] = 'djangocelery_example_sandbox'
 DATABASES['default']['USER'] = 'djangocelery_example_sandbox'
-#DATABASES['default']['PASSWORD'] = os.environ['GOLIVE_DB_PASSWORD']
-DATABASES['default']['PASSWORD'] = "asdf"
+DATABASES['default']['PASSWORD'] = get_var("DB_PASSWORD")
 ALLOWED_HOSTS = ['backend_golive-sandbox1', 'golive-sandbox1']
 USE_X_FORWARDED_HOST = True
-BROKER_URL = os.environ['GOLIVE_BROKER_URL']
+BROKER_URL = get_var('BROKER_URL')

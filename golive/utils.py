@@ -38,8 +38,8 @@ formatter = ColoredFormatter(
         'CRITICAL': 'red',
         }
 )
-#LEVEL = logging.DEBUG
-LEVEL = logging.INFO
+LEVEL = logging.DEBUG
+#LEVEL = logging.INFO
 handler = logging.StreamHandler()
 handler.setLevel(LEVEL)
 handler.setFormatter(formatter)
