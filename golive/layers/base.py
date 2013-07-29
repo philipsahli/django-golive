@@ -13,7 +13,7 @@ from django.template import loader, Context
 from django.template.base import TemplateDoesNotExist
 
 from golive.stacks.stack import config, environment
-from golive.utils import info, resolve_host, debug, error, warn
+from golive.utils import info, debug, error, warn
 
 
 class BaseTask(object):
@@ -183,6 +183,7 @@ class TemplateBasedSetup(BaseTask):
 class DebianPackageMixin():
 
     def init(self, update=True):
+        from golive.stacks.stack import config
         env.user = config['INIT_USER']
         if getattr(self.__class__, 'package_name', None):
             with settings(warn_only=True):
@@ -257,6 +258,8 @@ class BaseSetup(BaseTask, DebianPackageMixin, PyPackageMixin):
         Add every host in environment to the hostfile on the server(s).
         """
         from golive.stacks.stack import environment
+        # import here to enable mocking
+        from golive.utils import resolve_host
         for host in environment.hosts:
             ip = resolve_host(host)
             self.append("/etc/hosts", "%s %s" % (ip, host))
