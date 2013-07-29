@@ -407,6 +407,8 @@ class Stack(object):
         info("***** START")
         for role in self.environment.roles:
             info("* ROLE %s" % role)
+            mod = sys.modules['golive.stacks.stack']
+            mod.config.update({'ROLE': role})
             if role.has_hosts():
                 # prepare env for fabric
                 self._prepare_env(role)

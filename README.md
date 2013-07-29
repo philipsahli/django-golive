@@ -167,6 +167,23 @@ Builtin Components
 
 ***
 
+### golive.layers.base.CrontabSetup
+* Configure crontab per role
+
+    You can create a crontab `templates/golive/cron/ROLE.crontab` in your template folder.
+    It must extend the base template in golive and define a block in it.
+
+    Example `db_host.crontab`:
+
+        {% extends "golive/cron/base_db_host.crontab" %}
+        {% block crontab %}
+        0 3 * * * {{ USER }} script.sh >> {{ LOGDIR }}/script.log
+        {% endblock %}
+
+    Golive creates the file in `/etc/cron.d`.
+
+***
+
 ### golive.layers.web.NginxSetup
 * Configure Frontend-Webserver
 
@@ -187,6 +204,8 @@ Builtin Components
 * Virtualenv Environment
 
     Creates a virtualenv in `$HOME/.virtualenvs` with the name of the project (`PROJECT_NAME`).
+
+
 
 ***
 

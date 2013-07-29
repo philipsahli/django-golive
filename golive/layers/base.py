@@ -1,6 +1,7 @@
 import tempfile
 import sys
 import time
+import traceback
 
 from fabric.api import run as remote_run
 from fabric.context_managers import settings, hide
@@ -9,9 +10,10 @@ from fabric.operations import sudo, put, get, os, run
 from fabric.state import env
 from fabric.tasks import execute
 from django.template import loader, Context
+from django.template.base import TemplateDoesNotExist
 
 from golive.stacks.stack import config, environment
-from golive.utils import info, resolve_host, debug
+from golive.utils import info, resolve_host, debug, error, warn
 
 
 class BaseTask(object):
@@ -258,6 +260,37 @@ class BaseSetup(BaseTask, DebianPackageMixin, PyPackageMixin):
         for host in environment.hosts:
             ip = resolve_host(host)
             self.append("/etc/hosts", "%s %s" % (ip, host))
+
+
+class CrontabSetup(TemplateBasedSetup):
+    TEMPLATE = "golive/cron/base.crontab"
+    CRONDIR = "/etc/cron.d"
+
+    def deploy(self):
+        self.local_filename = self.TEMPLATE.replace("base", config['ROLE'].name.lower())
+        if self.local_filename is None:
+            return
+        # render
+        try:
+            self.context_data = {'USER': config['USER'],
+                                 'LOGDIR':  os.path.join("/home", config['USER']) + "/log"
+            }
+            info("CRONTAB: setup crontab")
+            tmp_file = self.load_and_render_to_tempfile(self.local_filename, **self.context_data)
+            # send file
+            self.destination_filename = "%s_%s_%s" % (config['PROJECT_NAME'], config['ENV_ID'],
+                                                      os.path.basename(self.local_filename))
+            destination_filename_path = os.path.join(self.CRONDIR, self.destination_filename)
+            self.put_sudo(tmp_file, destination_filename_path)
+            #self.execute(run, "crontab %s" % self.destination_filename)
+            info("CRONTAB: %s saved to %s" % (self.local_filename, self.CRONDIR))
+        except TemplateDoesNotExist, e:
+            warn("Template %s does not exist" % self.local_filename)
+        except Exception, e:
+            error(e)
+
+    def update(self):
+        self.deploy()
 
 
 class SupervisorSetup(DebianPackageMixin, TemplateBasedSetup):
