@@ -1,6 +1,6 @@
 import tempfile
 from django.test import TestCase
-from unittest import skip
+#from unittest import skip
 import yaml
 from mock import patch
 from golive.layers.base import UserSetup, IPTablesSetup, Rule, BaseTask
@@ -192,21 +192,21 @@ class StackFactoryTest(BaseTestCase):
         self.stack.do(Stack.INIT)
         self.assertEqual(80, mock_execute.call_count)
 
-    @skip("disabled")
-    @patch("fabric.tasks._execute")
-    @patch("golive.utils.resolve_host")
-    def test_update_stack(self, mock_method_resolve, mock_execute):
-        mock_method_resolve.return_value = "1.2.3.4"
-        mock_execute.return_value = "", "", True
-        self.stack.do(Stack.DEPLOY)
-        self.assertEqual(75, mock_execute.call_count)
-
-    @skip("disabled")
-    @patch("fabric.tasks._execute")
-    def test_update_stack_task_selected(self, mock_execute):
-        mock_execute.return_value = "", "", True
-        self.stack.do(Stack.DEPLOY, task="golive.layers.app.DjangoSetup")
-        self.assertEqual(35, mock_execute.call_count)
+    # @skip("disabled")
+    # @patch("fabric.tasks._execute")
+    # @patch("golive.utils.resolve_host")
+    # def test_update_stack(self, mock_method_resolve, mock_execute):
+    #     mock_method_resolve.return_value = "1.2.3.4"
+    #     mock_execute.return_value = "", "", True
+    #     self.stack.do(Stack.DEPLOY)
+    #     self.assertEqual(75, mock_execute.call_count)
+    #
+    # @skip("disabled")
+    # @patch("fabric.tasks._execute")
+    # def test_update_stack_task_selected(self, mock_execute):
+    #     mock_execute.return_value = "", "", True
+    #     self.stack.do(Stack.DEPLOY, task="golive.layers.app.DjangoSetup")
+    #     self.assertEqual(35, mock_execute.call_count)
 
 
 class ManagementCommandTest(TestCase):
