@@ -1,3 +1,4 @@
 Mezzanine==1.4.6
 -e git+git://github.com/fatrix/django-golive.git#egg=django-golive
 Fabric
+psycopg2==2.5.1
