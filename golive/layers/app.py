@@ -23,6 +23,7 @@ class PythonSetup(BaseTask, DebianPackageMixin):
         self.execute(run, "test -d .virtualenvs/%s || virtualenv --no-site-packages .virtualenvs/%s" %
                           (env.project_name,  env.project_name))
 
+
 class DjangoBaseTask():
     def manage(self, command):
         with prefix('. %s/.virtualenvs/%s/bin/activate' % (env.remote_home, env.project_name)):

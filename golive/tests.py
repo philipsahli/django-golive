@@ -143,6 +143,7 @@ ENVIRONMENTS:
 #         task_manager.run()
 #
 
+
 class BaseTestCase(TestCase):
 
     @patch.object(Stack, "_read_userconfigfile")
@@ -162,21 +163,23 @@ class BaseTestCase(TestCase):
         # called in stack.do, otherwise environment var is missing
         self.stack._set_stack_config()
 
+
 class StackFactoryTest(BaseTestCase):
 
-    def setUp(self):
+    @patch.object(Stack, "_read_userconfigfile")
+    def setUp(self, mock_method):
         super(StackFactoryTest, self).setUp()
 
     def test_stack_loaded(self):
         self.assertEqual(3, self.stack.role_count)
-        self.assertEqual(4, len(self.stack.tasks_for_role("APP_HOST")))
-        self.assertEqual(4, len(self.stack.get_role("APP_HOST").tasks))
+        self.assertEqual(5, len(self.stack.tasks_for_role("APP_HOST")))
+        self.assertEqual(5, len(self.stack.get_role("APP_HOST").tasks))
         self.assertEqual(1, len(self.stack.hosts_for_role("APP_HOST")))
 
-        self.assertEqual(3, len(self.stack.get_role("DB_HOST").tasks))
+        self.assertEqual(4, len(self.stack.get_role("DB_HOST").tasks))
         self.assertEqual(1, len(self.stack.hosts_for_role("DB_HOST")))
 
-        self.assertEqual(3, len(self.stack.get_role("WEB_HOST").tasks))
+        self.assertEqual(4, len(self.stack.get_role("WEB_HOST").tasks))
         self.assertEqual(1, len(self.stack.hosts_for_role("WEB_HOST")))
 
     @patch("golive.utils.resolve_host")
@@ -187,7 +190,7 @@ class StackFactoryTest(BaseTestCase):
         mock_execute.return_value = "", "", True
         mock_readfile.return_value = "filecontent"
         self.stack.do(Stack.INIT)
-        self.assertEqual(74, mock_execute.call_count)
+        self.assertEqual(80, mock_execute.call_count)
 
     @skip("disabled")
     @patch("fabric.tasks._execute")

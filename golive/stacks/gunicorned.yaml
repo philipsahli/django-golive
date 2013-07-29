@@ -4,17 +4,20 @@ ROLES:
       TASKS:
        - golive.layers.base.UserSetup
        - golive.layers.base.BaseSetup
+       - golive.layers.base.CrontabSetup
        - golive.layers.web.NginxProxySetup
     DB_HOST:
       ORDER: 1
       TASKS:
        - golive.layers.base.UserSetup
        - golive.layers.base.BaseSetup
+       - golive.layers.base.CrontabSetup
        - golive.layers.db.PostgresSetup
     APP_HOST:
       ORDER: 2
       TASKS:
        - golive.layers.base.UserSetup
        - golive.layers.base.BaseSetup
+       - golive.layers.base.CrontabSetup
        - golive.layers.app.PythonSetup
        - golive.layers.app.DjangoSetupGunicorn

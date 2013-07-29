@@ -38,13 +38,15 @@ formatter = ColoredFormatter(
         'CRITICAL': 'red',
         }
 )
+#LEVEL = logging.DEBUG
+LEVEL = logging.INFO
 handler = logging.StreamHandler()
-handler.setLevel(logging.INFO)
+handler.setLevel(LEVEL)
 handler.setFormatter(formatter)
 
 # Get an instance of a logger
 logger = logging.getLogger(LOGGER_NAME)
-logger.setLevel(logging.INFO)
+logger.setLevel(LEVEL)
 logger.addHandler(handler)
 
 
@@ -59,9 +61,10 @@ def logit(level, message):
         logger.info(message, extra=d)
     elif level == logging.ERROR:
         logger.error(message, extra=d)
-
     elif level == logging.DEBUG:
         logger.debug(message, extra=d)
+    elif level == logging.WARN:
+        logger.warn(message, extra=d)
     else:
         raise Exception("Loglevel not configured")
 

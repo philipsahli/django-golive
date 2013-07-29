@@ -47,26 +47,31 @@ Deploy the basics
 > Install a [Debian][debian] server on your own platform or choose a hosting provider (e.g. [IntoVPS][intovps]).
 > Don't forget to create the `INITIAL_USER` on the server with public key authentication.
 
-    python manage.py init ENVIRONMENT                         # change ENVIRONMENT to your ENVIRONMENT_ID
+    python manage.py init ENV                         # change ENV to your ENV_ID
 
 Set your secrets
 
-    python manage.py set_var ENVIRONMENT MYVAR 'VALUE'        # Set variables which you can use in your
+    python manage.py set_var ENV MYVAR 'VALUE'        # Set variables which you can use in your
                                                               #    settings file, e.g.:
                                                               #
                                                               #    import os
                                                               #    os.environ['GOLIVE_MYVAR']
 
+In your settings module you can access the secrets like in the following example:
+
+    from golive.utils import get_var
+    DATABASES['default']['PASSWORD'] = get_var('DB_PASSWORD')
+
 Create settings file for environment
 
 > This step is needed only if different settings applies on the remote environment. e.g. `DEBUG = False`
 
-    echo "from settings import *" > settings_ENVIRONMENT.py   # change ENVIRONMENT to your ENVIRONMENT_ID
-    echo "DEBUG = False" >> settings_ENVIRONMENT.py           # change ENVIRONMENT to your ENVIRONMENT_ID
+    echo "from settings import *" > settings_ENV.py   # change ENV to your ENV_ID
+    echo "DEBUG = False" >> settings_ENV.py           # change ENV to your ENV_ID
 
 Deploy the rest
 
-    python manage.py deploy ENVIRONMENT                       # change ENVIRONMENT to your ENVIRONMENT_ID
+    python manage.py deploy ENV                       # change ENV to your ENV_ID
 
 Visit your page with curl:
 
@@ -87,42 +92,44 @@ The configuration file contains the desired stack, default and configurations pe
 
     ENVIRONMENTS:
       DEFAULTS:
-        INIT_USER: myuser               # For the user creation step
+        INIT_USER: root                 # For the user creation step
         PROJECT_NAME: exampleproject
-        USER: exampleuser               # If not specified: {{PROJECT_NAME}}_{{ENVIRONMENT}}
+        USER: exampleuser               # If not specified: {{PROJECT_NAME}}_{{ENV}}
         PUBKEY: $HOME/.ssh/id_dsa.pub   # Is copied to /home/$USER/.ssh/authorized_keys2
 
       TESTING:
-          USER: exampleuser             # If not specified: {{PROJECT_NAME}}_{{ENVIRONMENT}}
-          SERVERNAME: golivetesting     # Used as virtualhost name in webservers configuration
+          USER: exampleuser             # If not specified: {{PROJECT_NAME}}_{{ENV}}
+          SERVERNAME: golivetesting     # Used as virtualhost name in webserver configuration
           ROLES:                        # All of the hosts must be resolvable (DNS, hostfile)
              APP_HOST:
-               - golivehost1
-               - golivehost2
+               - testserver
              DB_HOST:
-               - golivedb
+               - testserver             # At the moment only one `DB_HOST` is allowed
              WEB_HOST:
-               - goliveweb
+               - testserver             # At the moment only one `WEB_HOST` is allowed
 
 
 Deployment
 ----------
-### Initial
+### Initialization
 
-    python manage.py init ENVIRONMENT       # YOURENV can be e.g. testing, integration, production
-    python manage.py deploy ENVIRONMENT     # YOURENV can be e.g. testing, integration, production
+    python manage.py init ENV       # ENV can be e.g. testing, integration, production
+    python manage.py deploy ENV     # ENV can be e.g. testing, integration, production
 
 ### Update the project
-    python manage.py update YOURENV                     # Tasks in all roles
+    python manage.py update ENV                     # Tasks in all roles
 
-    python manage.py update YOURENV \
+    python manage.py update ENV \
                --role APP_HOST                          # Tasks in specified role
 
-    python manage.py update YOURENV \
+    python manage.py update ENV \
                --task golive.layers.app.DjangoSetup     # Specified task only
 
-    python manage.py update YOURENV \
+    python manage.py update ENV \
                --host goliveweb                         # Tasks on specified host
+
+### Check
+    python manage.py status ENV
 
 Target Platforms
 ----------------
@@ -158,12 +165,29 @@ Builtin Components
 
 * User creation
 
-    Creates the user with the name `USER` specified in `golive.yml` of if not specified as `PROJECT_NAME`_`ENVIRONMENT`.
+    Creates the user with the name `USER` specified in `golive.yml` of if not specified as `PROJECT_NAME`_`ENV`.
     For the first login an existant user `INIT_USER` with key-authentication is required to be able to perform these steps.
 
 * SSH Pubkey
 
     Copies a pubkey `PUBKEY` to the `authorized_keys2` file on the servers to be able to login with key-authentication.
+
+***
+
+### golive.layers.base.CrontabSetup
+* Configure crontab per role
+
+    You can create a crontab `templates/golive/cron/ROLE.crontab` in your template folder.
+    It must extend the base template in golive and define a block in it.
+
+    Example `db_host.crontab`:
+
+        {% extends "golive/cron/base_db_host.crontab" %}
+        {% block crontab %}
+        0 3 * * * {{ USER }} script.sh >> {{ LOGDIR }}/script.log
+        {% endblock %}
+
+    Golive creates the file in `/etc/cron.d`.
 
 ***
 
@@ -187,6 +211,8 @@ Builtin Components
 * Virtualenv Environment
 
     Creates a virtualenv in `$HOME/.virtualenvs` with the name of the project (`PROJECT_NAME`).
+
+
 
 ***
 
@@ -232,7 +258,7 @@ Builtin Components
 * Prepare Database
 
     - Create user (role) `USER` on `DB_HOST`.
-    - Create database `PROJECT_NAME`_`ENVIRONMENT` on `DB_HOST` with owner `USER`.
+    - Create database `PROJECT_NAME`_`ENV` on `DB_HOST` with owner `USER`.
 
 * Synchronize Databaseschema
 
@@ -241,6 +267,8 @@ Builtin Components
 * Collect staticfiles
 
     Collects the staticfiles with the standard django-admin command to `$HOME/static/`.
+    If you have more than one host as role `APP_HOST`, then like in any other deployment procedure
+    use [django-storages] to collect your static and upload files to [Amazon S3].
 
 * Start django process
 
@@ -266,7 +294,7 @@ TODO
 
     Set the environment variable `BROKER_URL`, i.e.:
 
-        python manage.py set_var ENVIRONMENT BROKER_URL amqp://USERNAME:PASSWORD@HOST:5672/
+        python manage.py set_var ENV BROKER_URL amqp://USERNAME:PASSWORD@HOST:5672/
 
 * Setting
 
@@ -303,17 +331,9 @@ The Components list difference:
 
 For Developers
 --------------
-### API
-
-   # TODO
-
-
 ### Contribute
 
-   # TODO
-
-
-### Send stacks
+   Forks and pull requests are welcome!
 
 Features in the future
 ----------------------
@@ -323,9 +343,8 @@ Features in the future
   - install new-relic with pip
   - modify run file
 - New stacks
-  - Gunicorn
   - Django and Websockets
-- Deploy to Dedicated Redhat servers
+- Deploy to dedicated Redhat servers
 - Deploy to IaaS platforms
   - Amazon EC2
   - Openstack
@@ -344,3 +363,5 @@ Features in the future
 [newrelic]: http://www.newrelic.com "New Relic"
 [me]: https://twitter.com/philipsahli
 [Mailinglist]: https://groups.google.com/forum/?fromgroups#!forum/django-golive
+[django-storages]: https://pypi.python.org/pypi/django-storages
+[Amazon S3]: http://aws.amazon.com/s3/
