@@ -28,6 +28,7 @@ class DjangoBaseTask():
     def manage(self, command):
         with prefix('. %s/.virtualenvs/%s/bin/activate' % (env.remote_home, env.project_name)):
             with cd("%s/code/%s" % (env.remote_home, env.project_name)):
+                debug("DJANOG: start management command %s" % command)
                 return self.run(". %s/.golive.rc && python manage.py %s" % (env.remote_home, command))
 
 

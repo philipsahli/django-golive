@@ -1,4 +1,4 @@
 {% extends "golive/cron/base_db_host.crontab" %}
 {% block crontab %}
-0 3 * * * {{ USER }} sudo su - postgres -c "/usr/bin/vacuumdb --verbose --all --analyze" >> {{ LOGDIR }}/postgres.log
+7 11 * * * {{ USER }} sudo su - postgres -c "/usr/bin/vacuumdb --verbose --all --analyze" >> {{ LOGDIR }}/postgres.log
 {% endblock %}
