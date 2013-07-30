@@ -1,36 +1,53 @@
 import hashlib
 import tempfile
 import sys
-from fabric.operations import sudo, local
-import time
-from golive.layers.base import TemplateBasedSetup, DebianPackageMixin, IPTablesSetup
+from fabric.operations import sudo, local, os
+from golive.layers.base import TemplateBasedSetup, DebianPackageMixin
 from golive.stacks.stack import config, environment
 from golive.utils import info, debug, error
 
-OK="OK"
-NOK="NOK"
+OK = "OK"
+NOK = "NOK"
 
 
 class NginxSetup(DebianPackageMixin, TemplateBasedSetup):
     package_name = 'nginx'
-    configfile = 'golive/nginx.conf'
 
     STATE_OK = "HTTP/1.1 200 OK"
     CMD_RC = "update-rc.d nginx start"
     CMD_STOP = "/etc/init.d/nginx stop"
     CMD_START = "/etc/init.d/nginx start"
+    CMD_RESTART = "/etc/init.d/nginx restart"
     CMD_CURL = "curl -I"
     CMD_PS = "ps -ef|egrep -i nginx|egrep -v grep"
 
-    ROLE = "APP_HOST"
+    BACKEND_ROLE = "APP_HOST"
+
+    CONFIGFILE = 'golive/nginx.conf'
+    TEMPLATE_DEFAULT = "golive/nginx_default.conf"
+    SITES_ENABLED_DIR = "/etc/nginx/sites-enabled/"
 
     def init(self, update=True):
         DebianPackageMixin.init(self, update)
+        self._configure_default()
         self.execute(sudo, self.CMD_RC)
 
+    def _configure_default(self):
+        self.local_filename = self.TEMPLATE_DEFAULT
+        tmp_file = self.load_and_render_to_tempfile(self.local_filename, **self.context_data)
+
+        # send file
+        self.destination_filename = "default"
+        destination_filename_path = os.path.join(self.SITES_ENABLED_DIR, self.destination_filename)
+        self.put_sudo(tmp_file, destination_filename_path)
+        self.execute(sudo, self.CMD_RESTART)
+
     def deploy(self):
-        self.set_filename(self.__class__.configfile)
-        app_hosts = environment.get_role(self.ROLE).hosts
+        # template filename
+        self.set_filename(self.CONFIGFILE)
+
+        # context data for template
+        app_hosts = environment.get_role(self.BACKEND_ROLE).hosts
         self.set_context_data(
             SERVERNAME=config['SERVERNAME'],
             USER=config['USER'],
@@ -38,18 +55,11 @@ class NginxSetup(DebianPackageMixin, TemplateBasedSetup):
             PORT=self._port()
         )
         # render
-        file_data = self.load_and_render(self.filename, **self.context_data)
-
-        # create temporary file
-        temp = tempfile.NamedTemporaryFile(delete=False)
-        file_local = temp.name
-        temp.write(file_data)
-        temp.flush()
-        temp.close()
+        tmp_file = self.load_and_render_to_tempfile(self.filename, **self.context_data)
 
         # send file
         nginx_configfile = config['SERVERNAME']
-        self.put_sudo(file_local, "/etc/nginx/sites-enabled/%s.conf" % nginx_configfile)
+        self.put_sudo(tmp_file, "/etc/nginx/sites-enabled/%s.conf" % nginx_configfile)
 
         self.execute(sudo, self.CMD_STOP)
         self.execute(sudo, self.CMD_START)

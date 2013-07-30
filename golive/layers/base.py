@@ -286,14 +286,15 @@ class CrontabSetup(TemplateBasedSetup):
             self.context_data = {'USER': config['USER'],
                                  'LOGDIR':  os.path.join("/home", config['USER']) + "/log"
             }
+
             info("CRONTAB: setup crontab")
             tmp_file = self.load_and_render_to_tempfile(self.local_filename, **self.context_data)
+
             # send file
             self.destination_filename = "%s_%s_%s" % (config['PROJECT_NAME'], config['ENV_ID'],
                                                       os.path.basename(self.local_filename.replace(".crontab", "")))
             destination_filename_path = os.path.join(self.CRONDIR, self.destination_filename)
             self.put_sudo(tmp_file, destination_filename_path)
-            #self.execute(run, "crontab %s" % self.destination_filename)
             info("CRONTAB: %s saved to %s" % (self.local_filename, self.CRONDIR))
         except TemplateDoesNotExist, e:
             warn("Template %s does not exist" % self.local_filename)

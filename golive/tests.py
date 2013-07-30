@@ -190,7 +190,7 @@ class StackFactoryTest(BaseTestCase):
         mock_execute.return_value = "", "", True
         mock_readfile.return_value = "filecontent"
         self.stack.do(Stack.INIT)
-        self.assertEqual(80, mock_execute.call_count)
+        self.assertEqual(83, mock_execute.call_count)
 
     # @skip("disabled")
     # @patch("fabric.tasks._execute")
