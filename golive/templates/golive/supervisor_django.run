@@ -11,4 +11,4 @@ for key_val in $(cat $HOME/.golive.rc); do
    fi
 done
 
-exec {{ PYTHON }} {{ PROJECT_DIR }}/manage.py runfcgi --settings={{SETTINGS}} daemonize=false host=% HOST % port={{ PORT }} outlog=/home/{{USER}}/log/django.log errlog=/home/{{USER}}/log/django_error.log maxrequests=10000 maxspare=3
+exec {{ PYTHON }} {{ PROJECT_DIR }}/manage.py runfcgi --settings={{SETTINGS}} daemonize=false host=% HOST % port={{ PORT }} outlog=/home/{{USER}}/log/django.log errlog=/home/{{USER}}/log/django_error.log maxrequests=10000 maxspare=3 maxchildren=6
