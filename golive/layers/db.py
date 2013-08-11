@@ -104,8 +104,11 @@ class PostgresSetup(BaseTask, DjangoBaseTask, DebianPackageMixin):
 
     def _restore(self):
         db_name = "%s_%s" % (config['PROJECT_NAME'], config['ENV_ID'])
-        db_name_source = "%s_%s" % (config['PROJECT_NAME'], config['SOURCE_ENV'])
         restore_file = config['BACKUP_DUMPFILE']
+
+        # different source database
+        source_env = config.get('SOURCE_ENV', None)
+        db_name_source = "%s_%s" % (config['PROJECT_NAME'], source_env)
         source_differs = (db_name != db_name_source)
 
         # drop db if wished, could be normal behaviour, but let this decide the operator
