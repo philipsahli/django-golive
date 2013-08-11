@@ -136,6 +136,30 @@ Target Platforms
 
 At the moment only deployments to a set of installed [Debian] hosts is supported (`PLATFORM: DEDICATED`).
 
+Backup/Restore
+--------------
+### Backup
+
+Creates a backup of your database and downloads a gzipped tar file to your current working directory.
+
+    python manage.py backup ENV
+
+### Restore
+
+Let you choose a previously taken backup of the target environment.
+
+    python manage.py restore ENV
+
+### Restore from a different environment
+
+This feature is useful to restore your production database into the integration environment.
+
+    python manage.py restore ENV --source_env=ENV
+
+After restoring the database django-golive executes sql commands specified in a list specified in your settings
+as `GOLIVE_CLEANUP_RESTORE`.
+
+
 
 Builtin Components
 ----------

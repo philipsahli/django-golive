@@ -19,3 +19,12 @@ ENVIRONMENTS:
            - golive-sandbox1
          WEB_HOST:
            - golive-sandbox1
+  SANDBOX2:
+      SERVERNAME: golive-sandbox2
+      ROLES:
+         APP_HOST:
+           - golive-sandbox2
+         DB_HOST:
+           - golive-sandbox2
+         WEB_HOST:
+           - golive-sandbox2

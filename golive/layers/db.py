@@ -1,4 +1,7 @@
 import datetime
+from django.contrib.sites.models import Site
+from django.conf import settings
+from fabric.contrib.files import sed
 from fabric.operations import run, prompt, os
 from fabric.state import env
 from golive import utils
@@ -16,7 +19,7 @@ from golive.stacks.stack import config, environment
 #        if "postgres" in engine:
 #            return PostgresSetup()
 #        raise Exception("Configuration problem")
-from golive.utils import info, error
+from golive.utils import info, error, debug
 
 
 class PostgresSetup(BaseTask, DjangoBaseTask, DebianPackageMixin):
@@ -72,15 +75,59 @@ class PostgresSetup(BaseTask, DjangoBaseTask, DebianPackageMixin):
         info("DB: Dump database to file %s" % os.path.join(self.backup_dir, dumpfile))
         self.execute_once(run, "pg_dump --create %s > %s/%s" % (db_name, self.backup_dir, dumpfile))
 
-    def _restore(self):
+    CONFIRM_YES = "yYjJ"
+    CONFIRM_NO = "nN"
 
-        db_name = "%s_%s" % (config['PROJECT_NAME'], config['ENV_ID'])
-        if prompt("Do you really want to drop the database '%s'? Y/N" % db_name) == "Y":
+    def _drop_db(self, db_name):
+        if prompt("Do you really want to drop the database '%s'? %s/%s" %
+                (db_name, self.CONFIRM_YES, self.CONFIRM_NO)) in self.CONFIRM_YES:
             self.execute_once(run, "dropdb %s" % db_name)
-            info("DB: dropped db %s" % db_name)
-        info("DB: db %s not dropped" % db_name)
+            info("DB: dropped database %s" % db_name)
+        else:
+            info("DB: database %s not dropped" % db_name)
+
+    def _cleanup(self):
+        info("DB: start cleanup database")
+        servername = config['SERVERNAME']
+        SQLs = ["UPDATE \"django_site\" SET \"domain\" = E'%s', \"name\" = E'%s' "
+                "WHERE \"django_site\".\"id\" = 1" % (servername, servername),
+                "DELETE FROM django_session",
+        ]
+        # builtin
+        for sql in SQLs:
+            self._execute_dbshell(sql)
+
+        # sql's from setting project settings
+        for sql in settings.GOLIVE_CLEANUP_RESTORE:
+            self._execute_dbshell(sql)
+        info("DB: end cleanup database")
+
+    def _restore(self):
+        db_name = "%s_%s" % (config['PROJECT_NAME'], config['ENV_ID'])
+        db_name_source = "%s_%s" % (config['PROJECT_NAME'], config['SOURCE_ENV'])
         restore_file = config['BACKUP_DUMPFILE']
+        source_differs = (db_name != db_name_source)
+
+        # drop db if wished, could be normal behaviour, but let this decide the operator
+        self._drop_db(db_name)
+
+        # if restore from different environment, change database-/role name in dumpfile on
+        # the server before restore
+        args = (restore_file, "%s" % db_name_source, "%s" % db_name)
+        debug("DB: Change string in dumpfile on server: %s to %s " % (args[1], args[2]))
+        self.execute_once(sed, *args)
+
+        # start restore
         output = self.execute_once(run, "psql -f %s postgres " % restore_file).values()[0]
+        info("OUTPUT: \r\n%s" % output)
+
+        # cleanup
+        if source_differs:
+            self._cleanup()
+
+    def _execute_dbshell(self, sql):
+        debug("DB: execute cleanup sql: %s" % sql)
+        output = self.execute_once(run, "echo \"%s\" | psql " % sql).values()[0]
         info("OUTPUT: \r\n%s" % output)
 
     def status(self):
