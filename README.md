@@ -131,6 +131,14 @@ Deployment
 ### Check
     python manage.py status ENV
 
+
+### Logs
+
+Executes a `tail -f` on all logfiles located in the directory `log` on the remote server.
+
+    python manage.py logs ENV
+
+
 Target Platforms
 ----------------
 
@@ -138,6 +146,7 @@ At the moment only deployments to a set of installed [Debian] hosts is supported
 
 Backup/Restore
 --------------
+
 ### Backup
 
 Creates a backup of your database and downloads a gzipped tar file to your current working directory.
