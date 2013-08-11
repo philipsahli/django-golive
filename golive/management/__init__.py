@@ -26,6 +26,9 @@ class CoreCommand(BaseCommand):
         self.stack = StackFactory.get(stackname)
         self.stack.setup_environment(args[0])
 
+        # put command options onto stack
+        self.stack.options = options
+
         # task decision
         task = None
         if 'task' in options:

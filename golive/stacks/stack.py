@@ -6,7 +6,7 @@ from fabric.operations import run, get, put, prompt, os
 from fabric.state import env, output
 import yaml
 from fabric.tasks import execute
-from golive.utils import info, debug
+from golive.utils import info, debug, error
 
 config = None
 environment = None
@@ -258,7 +258,8 @@ class Stack(object):
         elif job == Stack.BACKUP:
             self.backup()
         elif job == Stack.RESTORE:
-            self.restore()
+            source_env = self.options['source_env']
+            self.restore(source_env)
         else:
             raise Exception("Job '%s' unknown" % job)
 
@@ -317,21 +318,32 @@ class Stack(object):
         # get backup tgz
         BaseTask.execute_on_host(get, host, backup_file, ".")
 
-    def restore(self):
+    def restore(self, source_env):
+        # capable to restore from another environment,
+        # if not None, operator wishs to operate on the same one
+        # as the backup has been taken from
+        if source_env is None:
+            source_env = config['ENV_ID']
+        else:
+            config['SOURCE_ENV'] = source_env
         self.ts = config['TS']
         env.user = config['USER']
         self.backup_dir = "$HOME/tmp_%s" % self.ts
         config['BACKUP_DIR'] = self.backup_dir
 
         # get all tgz files
-        file_list = glob.glob("backup*%s*tgz" % config['ENV_ID'])
+        file_list = glob.glob("backup*%s*tgz" % source_env)
         sfile_list = ""
         for index, file in enumerate(file_list):
             if index > 0:
                 sfile_list += "\r\n"
-            sfile_list += "[%s] %s" % (index+1, file)
+            sfile_list += "[%s] %s" % (index + 1, file)
 
-        print sfile_list
+        if len(sfile_list) < 1:
+            error("Restore: No backup files found to work with.")
+            sys.exit(1)
+        else:
+            print sfile_list
 
         try:
             selected = int(prompt("Which backup should be applied?")) - 1
