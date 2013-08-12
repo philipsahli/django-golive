@@ -80,9 +80,11 @@ class DjangoSetup(BaseTask, DjangoBaseTask):
 
         self._stop()
         self._sync()
-        self._install_requirements()
+        if not config['OPTIONS']['fast']:
+            self._install_requirements()
         self._syncdb()
-        self._collecstatic()
+        if not config['OPTIONS']['fast']:
+            self._collecstatic()
         self._start()
 
     def _stop(self):
