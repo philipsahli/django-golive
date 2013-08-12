@@ -117,7 +117,7 @@ Deployment
     python manage.py deploy ENV     # ENV can be e.g. testing, integration, production
 
 ### Update the project
-    python manage.py update ENV                     # Tasks in all roles
+    python manage.py update ENV                         # Tasks in all roles
 
     python manage.py update ENV \
                --role APP_HOST                          # Tasks in specified role
@@ -127,6 +127,11 @@ Deployment
 
     python manage.py update ENV \
                --host goliveweb                         # Tasks on specified host
+
+With the option `--fast` time intensiv tasks are not executed. The option is usefull if
+you only update your code and static files should not be collected and not any required python module from `requirements.txt` should not be installed/upgraded.
+
+    python manage.py update ENV --fast
 
 ### Check
     python manage.py status ENV

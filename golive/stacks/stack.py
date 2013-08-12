@@ -236,6 +236,10 @@ class Stack(object):
         mod.config.update({'DB_HOST': self.environment.get_role("DB_HOST").hosts[0]})
         mod.environment = self.environment
 
+        # set options to mod.config
+        mod.config['OPTIONS'] = self.options
+        #import pdb; pdb.set_trace()
+
     def do(self, job, task=None, role=None, full_args=None):
         # make stack config available to tasks
         self._set_stack_config()
