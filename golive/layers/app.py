@@ -60,9 +60,11 @@ class DjangoSetup(BaseTask, DjangoBaseTask):
 
         self._stop()
         self._sync()
-        self._install_requirements()
+        if not config['OPTIONS']['fast']:
+            self._install_requirements()
         self._syncdb()
-        self._collecstatic()
+        if not config['OPTIONS']['fast']:
+            self._collecstatic()
         self._start()
 
         allow = [(environment.get_role('WEB_HOST').hosts, IPTablesSetup.DESTINATION_ALL, self._port())]

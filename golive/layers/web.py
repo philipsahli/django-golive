@@ -19,7 +19,7 @@ class NginxSetup(DebianPackageMixin, TemplateBasedSetup):
     CMD_START = "/etc/init.d/nginx start"
     CMD_RESTART = "/etc/init.d/nginx restart"
     CMD_CURL = "curl -I"
-    CMD_PS = "ps -ef|egrep -i nginx|egrep -v grep"
+    CMD_PS = "ps -ef|egrep -i nginx:|egrep -v grep"
 
     BACKEND_ROLE = "APP_HOST"
 
@@ -68,7 +68,9 @@ class NginxSetup(DebianPackageMixin, TemplateBasedSetup):
 
     def _call(self):
         if "test" not in sys.argv:
-            out = local("%s http://%s" % (self.CMD_CURL, config['SERVERNAME']), capture=True)
+            cmd = "%s http://%s" % (self.CMD_CURL, config['SERVERNAME'])
+            out = local(cmd, capture=True)
+            debug("SITE: checked with: %s " % cmd)
             return out
 
     def update(self):
