@@ -1,4 +1,5 @@
 import hashlib
+import pprint
 
 from fabric.context_managers import cd, prefix
 from fabric.contrib.project import rsync_project, os
@@ -189,9 +190,24 @@ class DjangoSetup(BaseTask, DjangoBaseTask):
     def _syncdb(self):
         info("DJANGO: synchronize database schema")
         self._prepare_db()
+
+        # sync
         out = self.manage("syncdb --noinput --settings=%s" % self._settings_modulestring())
-        info("DJANGO: %s" % out)
-        # TODO: migratedb if south installed
+        host, value = out.popitem()
+        info("DJANGO SYNC: %s" % value)
+
+        # migrate
+        if self._use_south():
+            out = self.manage("migrate --noinput --settings=%s" % self._settings_modulestring())
+            host, value = out.popitem()
+            info("DJANGO MIGRATE: %s" % value)
+
+    def _use_south(self):
+        db_host = config['DB_HOST']
+        db_name = "%s_%s" % (config['PROJECT_NAME'], config['ENV_ID'])
+        sql = "SELECT COUNT(*) FROM south_migrationhistory;"
+        out = execute(run, ("echo \"%s\" | sudo su - postgres -c \"psql -d %s 2>&1 1>/dev/null\"; echo $?" % (sql, db_name)), hosts=[db_host])
+        return out[db_host] == '0'
 
     def _prepare_db(self):
         # get db node
