@@ -1,6 +1,6 @@
 Django==1.5.1
 Fabric==1.6.0
 mock==1.0.1
--e git+https://github.com/fatrix/django-golive.git@527045034d2d14e2b5ea1f09aeb586f063bb8924#egg=django-golive
+-e git+https://github.com/fatrix/django-golive.git#egg=django-golive
 flup
 psycopg2
