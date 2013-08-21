@@ -1,5 +1,4 @@
 import hashlib
-import pprint
 
 from fabric.context_managers import cd, prefix
 from fabric.contrib.project import rsync_project, os
@@ -7,10 +6,13 @@ from fabric.decorators import runs_once
 from fabric.operations import run
 from fabric.state import env
 import django
+from django.core.exceptions import ImproperlyConfigured
 
 from base import *
+from golive import registry
+from golive.addons.newrelic import NewRelicPythonAddon
 from golive.stacks.stack import config, environment
-from golive.utils import error
+from golive.utils import get_remote_envvar
 
 
 class PythonSetup(BaseTask, DebianPackageMixin):
@@ -29,7 +31,7 @@ class DjangoBaseTask():
     def manage(self, command):
         with prefix('. %s/.virtualenvs/%s/bin/activate' % (env.remote_home, env.project_name)):
             with cd("%s/code/%s" % (env.remote_home, env.project_name)):
-                debug("DJANOG: start management command %s" % command)
+                debug("DJANGO: start management command %s" % command)
                 return self.run(". %s/.golive.rc && python manage.py %s" % (env.remote_home, command))
 
 
@@ -49,6 +51,7 @@ class DjangoSetup(BaseTask, DjangoBaseTask):
     def init(self):
         info("DJANGO: create basic directories in $HOME")
         self.mkdir("/home/%s/code" % config['USER'])
+        self.mkdir("/home/%s/conf" % config['USER'])
         self.mkdir("/home/%s/log" % config['USER'])
         self.mkdir("/home/%s/static" % config['USER'])
 
@@ -61,10 +64,10 @@ class DjangoSetup(BaseTask, DjangoBaseTask):
 
         self._stop()
         self._sync()
-        if not config['OPTIONS']['fast']:
+        if config.get("OPTIONS") and not config['OPTIONS']['fast']:
             self._install_requirements()
         self._syncdb()
-        if not config['OPTIONS']['fast']:
+        if config.get("OPTIONS") and not config['OPTIONS']['fast']:
             self._collecstatic()
         self._start()
 
@@ -123,18 +126,38 @@ class DjangoSetup(BaseTask, DjangoBaseTask):
             PROJECT=config['PROJECT_NAME'],
             ENVIRONMENT=config['ENV_ID'],
             USER=config['USER'],
+            ADDONS=registry.objects_active_name,
             APPNAME=self.supervisor_appname,
             SETTINGS=self._settings_modulestring(),
             PORT=self._port()
         )
 
+        # file for supervisor
         supervisor.set_local_filename(self.__class__.supervisor_conf_template)
         supervisor.set_destination_filename("/etc/supervisor/conf.d/%s.conf" % self.supervisor_appname)
-
         supervisor.init()
         supervisor.deploy()
 
+        # set user for fabric
+        env.user = config['USER']
+
+        # addon's
+        if registry.is_active(NewRelicPythonAddon.NAME):
+            # create ini file for new relic
+            newrelic = NewRelicPythonAddon()
+            newrelic.deploy()
+            # we need to extend the template with newrelic stuff
+            self.__class__.supervisor_run_template = \
+                self.__class__.supervisor_run_template.replace(".run", "_newrelic.run").\
+                    replace("golive", "golive/addons/newrelic")
+
+            supervisor.set_context_data( PRE_EXECUTABLE="/home/%s/.virtualenvs/%s/bin/newrelic-admin run-program" %
+                                   (config['USER'], config['PROJECT_NAME'])
+            )
+
+
         # run wrapper script
+        supervisor.set_context_data(ADDONS=registry.objects_active)
         supervisor.set_local_filename(self.__class__.supervisor_run_template)
         supervisor.set_destination_filename("/home/%s/%s.run" % (config['USER'], self.supervisor_appname))
         supervisor.init()
@@ -229,10 +252,6 @@ class DjangoSetup(BaseTask, DjangoBaseTask):
             execute(sudo, ("su - postgres -c \"createdb -U postgres -O %s -E UTF8 -T template0 %s\"" % (
                 config['USER'],
                 db_name)), hosts=[db_host])
-
-
-def get_remote_envvar(var, host):
-    return execute(run, "echo $%s" % var, host=host).get(host, None)
 
 
 class DjangoSetupGunicorn(DjangoSetup):

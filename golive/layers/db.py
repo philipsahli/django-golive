@@ -1,4 +1,3 @@
-import datetime
 from django.contrib.sites.models import Site
 from django.conf import settings
 from fabric.contrib.files import sed

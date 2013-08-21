@@ -1,0 +1,6 @@
+{% extends "golive/supervisor_djangogunicorn.run" %}
+
+{% block exports %}
+export NEW_RELIC_CONFIG_FILE=/home/{{ USER }}/conf/newrelic_{{ ENVIRONMENT }}.ini
+{% endblock exports %}
+
