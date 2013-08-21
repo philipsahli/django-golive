@@ -6,7 +6,8 @@ from fabric.operations import run, get, put, prompt, os
 from fabric.state import env, output
 import yaml
 from fabric.tasks import execute
-from golive.utils import info, debug, error
+from golive.utils import info, debug, error, warn
+from golive.addons import registry, SLOT_AFTER, SLOT_BEFORE
 
 config = None
 environment = None
@@ -137,6 +138,10 @@ class Stack(object):
     CONFIG = "golive.yml"
     DEFAULTS = "DEFAULTS"
 
+    @property
+    def platform(self):
+        return self.base_config['PLATFORM']
+
     def __init__(self, name):
         super(Stack, self).__init__()
         self.name = name
@@ -167,7 +172,7 @@ class Stack(object):
         self.configfile = self._read_stackconfigfile()
 
     def _read_userconfigfile(self):
-        return  open(Stack.CONFIG, 'r')
+        return open(Stack.CONFIG, 'r')
 
     def _parse(self):
         # load stack config (tasks for roles)
@@ -175,6 +180,9 @@ class Stack(object):
 
         # load user config
         environment_configfile = self._read_userconfigfile()
+        self.base_config = yaml.load(environment_configfile)['CONFIG']
+        # rewind file
+        environment_configfile.seek(0)
         self.environment_config_temp = yaml.load(environment_configfile)['ENVIRONMENTS']
 
         # load defaults, allows to be overwriten per environment
@@ -183,6 +191,16 @@ class Stack(object):
 
         # add environment roles
         self.environment_config.update({'ROLES': self.environment_config_temp[self.environment_name.upper()]['ROLES']})
+
+        # add config from user configuration file
+        self.environment_config['PLATFORM'] = self.base_config['PLATFORM']
+
+        addons = self.base_config.get('ADDONS', None)
+        self.environment_config['ADDONS'] = addons
+
+        for num, addon in enumerate(addons):
+            registry.activate(addon)
+            debug("ADDON: %s activated" % addon)
 
         # set remote user in the environment
         self._set_user()
@@ -235,6 +253,7 @@ class Stack(object):
         mod.config.update({'ENV_ID': self.environment_name})
         mod.config.update({'DB_HOST': self.environment.get_role("DB_HOST").hosts[0]})
         mod.environment = self.environment
+        mod.environment.stack = self
 
         if getattr(self, "options", None):
             # set options to mod.config
@@ -272,7 +291,7 @@ class Stack(object):
         env.user = config['USER']
         for host in list(set(self.environment.hosts)):
 
-            print "configure variable %s on host %s with value: %s" % (key, host, value)
+            info("VAR: set variable %s on host %s with value: %s" % (key, host, value))
 
             # check if key already defined
             args = ("$HOME/.golive.rc", "export %s=" % key, False)
@@ -414,12 +433,8 @@ class Stack(object):
     # Execution
     ######
     def _execute_tasks(self, method):
-        #d = {
-        #    'environment_name': config['ENV_ID'],
-        #    'method': method,
-        #}
-        debug("config: "+str(config))
-        debug("environment_config: "+str(self.environment_config))
+        debug("config: " + str(config))
+        debug("environment_config: " + str(self.environment_config))
         info("***** START")
         for role in self.environment.roles:
             info("* ROLE %s" % role)
@@ -431,6 +446,9 @@ class Stack(object):
                 info("** HOSTS %s" % role.hosts)
                 for task in role.tasks:
                     try:
+                        # addon BEFORE
+                        self._install_addon(method, task, SLOT_BEFORE)
+
                         task_class = task._load_module()
                         task_obj = task_class()
                         # try to get method
@@ -458,9 +476,26 @@ class Stack(object):
                                 method_impl_post()
                         except AttributeError, e:
                             raise e
+
+                        # addon AFTER
+                        self._install_addon(method, task, SLOT_AFTER)
+
                     except UnboundLocalError, e:
                         raise e
         info("***** END")
+
+    def _install_addon(self, method, task, slot):
+        for addon in registry.objects_active:
+            # check task
+            for allowed_task in addon.TASKS:
+                if allowed_task == str(task):
+                    # check method
+                    if method is addon.METHOD:
+                        # check slot
+                        if addon.SLOT == slot:
+                            addon_obj = addon()
+                            exec_method = self._get_method(addon_obj, method)
+                            exec_method()
 
     def _prepare_env(self, role):
         env.roledefs.update({role: role.hosts})
@@ -480,7 +515,7 @@ class Stack(object):
     def get_role(self, role):
         for drole in self.environment.roles:
             if role == drole.name:
-               return drole
+                return drole
         return None
 
     def hosts_for_role(self, role):

@@ -8,4 +8,6 @@ for key_val in $(cat $HOME/.golive.rc); do
    fi
 done
 
-exec {{ PYTHON }} {{ PROJECT_DIR }}/manage.py run_gunicorn --settings={{ SETTINGS }} --bind=% HOST %:{{ PORT }} --access-logfile=/home/{{ USER }}/log/gunicorn_access.log --error-logfile=/home/{{USER}}/log/gunicorn_error.log
+{% block exports %}{% endblock %}
+
+exec {{ PRE_EXECUTABLE }} {{ PYTHON }} {{ PROJECT_DIR }}/manage.py run_gunicorn --settings={{ SETTINGS }} --bind=% HOST %:{{ PORT }} --access-logfile=/home/{{ USER }}/log/gunicorn_access.log --error-logfile=/home/{{USER}}/log/gunicorn_error.log

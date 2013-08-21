@@ -216,7 +216,7 @@ Builtin Components
 * Configure crontab per role
 
     You can create a crontab `templates/golive/cron/ROLE.crontab` in your template folder.
-    It must extend the base template in golive and define a block in it.
+    It must extend the base template in golive and define a block `crontab` in it.
 
     Example `db_host.crontab`:
 
@@ -300,7 +300,7 @@ Builtin Components
 
 * Synchronize Databaseschema
 
-    Executes `syncdb` django command. If south is installed, in addition `migratedb`.
+    Executes `syncdb` django command. If south is installed, additionally `migratedb`.
 
 * Collect staticfiles
 
@@ -351,20 +351,35 @@ The very basic Django-Stack installed on your self-hosted platform ([Ubuntu] or 
 
 golive.layers.web.NginxSetup
 
-- One or many Apphosts (Python-Procs for Django with builtin's server)
+- One or many `APPHOST`'s (Python-Procs for Django with builtin's server)
 
 golive.layers.web.NginxSetup
 
-- DBhost (Database-Server with Postgresql)
+- `DBHOST` (database server with Postgresql)
 
 **See Stack-File [here][example-stackfile]**
 
 ### ClassicGunicorned
 
-This Stack is inherited from 'Classic', but uses Gunicorn to start the Django-Proc.
+This Stack is inherited from 'Classic', but uses [Gunicorn] to run the project behind [Nginx].
 The Components list difference:
 
 - One or many Apphosts (Python-Procs for Django with Gunicorn)
+
+
+Add-ons
+-------------
+
+### New Relic Python Agent / New Relic Server Agent
+
+Add following to the `CONFIG` section:
+
+     CONFIG:
+         ADDONS:
+              - NEW_RELIC_PYTHON
+              - NEW_RELIC_SERVERAGENT
+
+Set the variable `NEWRELIC_LICENSE_KEY`. Execute the commands init and deploy. Your app and server now report metrics to [New Relic][newrelic].
 
 
 For Developers
@@ -403,3 +418,4 @@ Features in the future
 [Mailinglist]: https://groups.google.com/forum/?fromgroups#!forum/django-golive
 [django-storages]: https://pypi.python.org/pypi/django-storages
 [Amazon S3]: http://aws.amazon.com/s3/
+[Gunicorn]: http://gunicorn.org/#docs

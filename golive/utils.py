@@ -5,6 +5,8 @@ import logging
 
 from colorlog import ColoredFormatter
 from django.core.exceptions import ImproperlyConfigured
+from fabric.operations import run
+from fabric.tasks import execute
 
 
 def nprint(m):
@@ -52,10 +54,13 @@ logger.addHandler(handler)
 
 def logit(level, message):
     from golive.stacks.stack import config
-    d = {'environment_name': config['ENV_ID']}
+    if config is not None:
+        d = {'environment_name': config['ENV_ID']}
+    else:
+        d = {'environment_name': "----"}
 
     if "*" not in message:
-        message="**** "+str(message)
+        message = "**** " + str(message)
 
     if level == logging.INFO:
         logger.info(message, extra=d)
@@ -97,3 +102,11 @@ def get_var(var_name):
     except KeyError:
         error_msg = "Set the %s env variable with set_var" % var_name
         raise ImproperlyConfigured(error_msg)
+
+
+def get_remote_envvar(var, host):
+    out = execute(run, "echo $%s" % var, host=host).get(host, None)
+    if not bool(out):
+        error_msg = "Set the %s env variable with set_var" % var.replace(ENV_PREFIX, "")
+        raise ImproperlyConfigured(error_msg)
+    return out

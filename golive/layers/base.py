@@ -1,7 +1,6 @@
 import tempfile
 import sys
 import time
-import traceback
 
 from fabric.api import run as remote_run
 from fabric.context_managers import settings, hide
@@ -84,6 +83,7 @@ class BaseTask(object):
         return execute(sudo, command)
 
     def mkdir(self, path):
+        info("BASE: create directory %s" % path)
         self.execute_silently(remote_run, "mkdir %s" % path)
 
     def rmdir(self, path):
@@ -177,7 +177,7 @@ class TemplateBasedSetup(BaseTask):
         return file_local
 
     def set_context_data(self, **kwargs):
-        self.context_data = kwargs
+        self.context_data = dict(kwargs.items() + self.context_data.items())
 
     def _to_temporary_file(self, file_data):
         temp = tempfile.NamedTemporaryFile(delete=False)
@@ -247,6 +247,12 @@ class BaseSetup(BaseTask, DebianPackageMixin, PyPackageMixin):
 
         self._secure()
 
+        # install addons
+        if "NEW_RELIC" in environment.stack.addons:
+            from golive.addons.newrelic import NewRelicServerAgentAddon
+            agent = NewRelicServerAgentAddon()
+            agent.init()
+
     def deploy(self):
         self._secure()
 
@@ -256,6 +262,7 @@ class BaseSetup(BaseTask, DebianPackageMixin, PyPackageMixin):
 
     def _secure_sshd(self):
         # don't allow authentication with passwords
+        from golive.stacks.stack import config
         env.user = config['USER']
         self.append("/etc/ssh/sshd_config", "PasswordAuthentication no")
         # reload
@@ -278,6 +285,7 @@ class CrontabSetup(TemplateBasedSetup):
     CRONDIR = "/etc/cron.d"
 
     def deploy(self):
+        from golive.stacks.stack import config
         self.local_filename = self.TEMPLATE.replace("base", config['ROLE'].name.lower())
         if self.local_filename is None:
             return
@@ -339,6 +347,7 @@ class UserSetup(BaseTask, DebianPackageMixin):
     ROLES = "ALL"
 
     def _useradd(self):
+        from golive.stacks.stack import config
         env.user = config['INIT_USER']
         info("USER: create user %s" % config['USER'])
         with hide("warnings"):
@@ -360,6 +369,7 @@ class UserSetup(BaseTask, DebianPackageMixin):
             self.execute(self._useradd)
             # add to sudo
             self.append_with_inituser("/etc/sudoers", "%s ALL=NOPASSWD: ALL" % user, user=env.user)
+
 
         pip_cache_dir = "/var/cache/pip"
         debug("PIP: Create cache dir %s" % pip_cache_dir)

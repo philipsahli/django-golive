@@ -98,4 +98,4 @@ class NginxSetup(DebianPackageMixin, TemplateBasedSetup):
 
 
 class NginxProxySetup(NginxSetup):
-    configfile = 'golive/nginx_proxy.conf'
+    CONFIGFILE = 'golive/nginx_proxy.conf'

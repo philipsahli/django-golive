@@ -1,7 +1,7 @@
 from fabric.context_managers import settings
-from golive.layers.app import get_remote_envvar
 from golive.layers.base import BaseTask, DebianPackageMixin, IPTablesSetup
 from golive.stacks.stack import environment
+from golive.utils import get_remote_envvar
 
 
 class RabbitMqSetup(BaseTask, DebianPackageMixin):
