@@ -32,7 +32,7 @@ class DjangoBaseTask():
         with prefix('. %s/.virtualenvs/%s/bin/activate' % (env.remote_home, env.project_name)):
             with cd("%s/code/%s" % (env.remote_home, env.project_name)):
                 debug("DJANGO: start management command %s" % command)
-                return self.run(". %s/.golive.rc && python manage.py %s" % (env.remote_home, command))
+                return self.execute(run, ". %s/.golive.rc && python manage.py %s" % (env.remote_home, command))
 
 
 class DjangoSetup(BaseTask, DjangoBaseTask):
@@ -66,7 +66,9 @@ class DjangoSetup(BaseTask, DjangoBaseTask):
         self._sync()
         if config.get("OPTIONS") and not config['OPTIONS']['fast']:
             self._install_requirements()
-        self._syncdb()
+        options = config['OPTIONS']
+        if not (options['host'] or options['task'] or options['role']):
+            self._syncdb()
         if config.get("OPTIONS") and not config['OPTIONS']['fast']:
             self._collecstatic()
         self._start()
@@ -94,11 +96,13 @@ class DjangoSetup(BaseTask, DjangoBaseTask):
         self._start()
 
     def _stop(self):
-        info("DJANGO: stop procs with supervisorctl")
-        self.execute(sudo, "supervisorctl stop %s" % self.supervisor_appname)
+        info("DJANGO: stop proc with supervisorctl")
+        with settings(warn_only=True):
+            self.execute(sudo, "supervisorctl stop %s" % self.supervisor_appname)
 
     def _status(self):
-        out = self.execute(sudo, "supervisorctl status %s" % self.supervisor_appname)
+        with settings(warn_only=True):
+            out = self.execute(sudo, "supervisorctl status %s" % self.supervisor_appname)
         self._check_output(out, "RUNNING", "PROCESS")
 
     def _start(self):
@@ -200,14 +204,19 @@ class DjangoSetup(BaseTask, DjangoBaseTask):
                       "--download-cache=/var/cache/pip " \
                       "-r requirements.txt"
                 debug("PIP: " + cmd)
-                debug(self.execute(run, cmd))
+                out = self.execute(run, cmd)
+                for host, value in out.iteritems():
+                    debug(value, host=host)
 
         # from class variable
         if hasattr(self.__class__, "python_packages"):
             for package in self.__class__.python_packages.split(" "):
                 with prefix('. %s/.virtualenvs/%s/bin/activate' % (env.remote_home, env.project_name)):
                     with cd("%s/code/%s" % (env.remote_home, env.project_name)):
-                        self.execute(run, "pip install -i %s --download-cache=/var/cache/pip %s" % (pip_mirror, package))
+                        out = self.execute(run, "pip install -i %s --download-cache=/var/cache/pip %s"
+                                                % (pip_mirror, package))
+                        for host, value in out.iteritems():
+                            debug(value, host=host)
 
     @runs_once
     def _syncdb(self):
@@ -229,7 +238,10 @@ class DjangoSetup(BaseTask, DjangoBaseTask):
         db_host = config['DB_HOST']
         db_name = "%s_%s" % (config['PROJECT_NAME'], config['ENV_ID'])
         sql = "SELECT COUNT(*) FROM south_migrationhistory;"
-        out = execute(run, ("echo \"%s\" | sudo su - postgres -c \"psql -d %s 2>&1 1>/dev/null\"; echo $?" % (sql, db_name)), hosts=[db_host])
+        out = self.execute_on_host(run,
+                                   db_host,
+                                   ("echo \"%s\" | sudo su - postgres -c \"psql -d %s 2>&1 1>/dev/null\"; echo $?" %
+                                        (sql, db_name)))
         return out[db_host] == '0'
 
     def _prepare_db(self):

@@ -50,7 +50,7 @@ class PostgresSetup(BaseTask, DjangoBaseTask, DebianPackageMixin):
         iptables.activate()
 
     def _allowed_hosts(self):
-        return [utils.resolve_host(x) for x in environment.get_role('WEB_HOST').hosts]
+        return [utils.resolve_host(x) for x in environment.get_role('APP_HOST').hosts]
 
     def backup(self):
         self.ts = config['TS']

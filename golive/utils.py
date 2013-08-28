@@ -28,7 +28,6 @@ def resolve_host(host):
 
 LOGGER_NAME = "golive"
 formatter = ColoredFormatter(
-    #"%(log_color)s%(levelname)-8s%(reset)s %(blue)s%(message)s",
     '%(log_color)s%(asctime)-15s %(levelname)-6s %(environment_name)-8s %(message)s',
     datefmt=None,
     reset=True,
@@ -40,8 +39,8 @@ formatter = ColoredFormatter(
         'CRITICAL': 'red',
         }
 )
-LEVEL = logging.DEBUG
-#LEVEL = logging.INFO
+#LEVEL = logging.DEBUG
+LEVEL = logging.INFO
 handler = logging.StreamHandler()
 handler.setLevel(LEVEL)
 handler.setFormatter(formatter)
@@ -52,14 +51,22 @@ logger.setLevel(LEVEL)
 logger.addHandler(handler)
 
 
-def logit(level, message):
+def logit(level, message, host=None):
     from golive.stacks.stack import config
+
     if config is not None:
         d = {'environment_name': config['ENV_ID']}
     else:
         d = {'environment_name': "----"}
 
-    if "*" not in message:
+    if host:
+        d['host'] = host
+    else:
+        d['host'] = "----"
+
+    if host:
+        message = "%s: %s" % (host, message)
+    if "*" not in message[0]:
         message = "**** " + str(message)
 
     if level == logging.INFO:
@@ -74,20 +81,20 @@ def logit(level, message):
         raise Exception("Loglevel not configured")
 
 
-def info(message):
-    logit(logging.INFO, message)
+def info(message, host=None):
+    logit(logging.INFO, message, host)
 
 
-def debug(message):
-    logit(logging.DEBUG, message)
+def debug(message, host=None):
+    logit(logging.DEBUG, message, host)
 
 
-def warn(message):
-    logit(logging.WARN, message)
+def warn(message, host=None):
+    logit(logging.WARN, message, host)
 
 
-def error(message):
-    logit(logging.ERROR, message)
+def error(message, host=None):
+    logit(logging.ERROR, message, host)
 
 
 ENV_PREFIX = "GOLIVE_"

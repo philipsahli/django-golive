@@ -1,3 +1,4 @@
+import pprint
 import tempfile
 import sys
 import time
@@ -5,11 +6,13 @@ import time
 from fabric.api import run as remote_run
 from fabric.context_managers import settings, hide
 from fabric.contrib.files import exists, append
+from fabric.decorators import parallel
 from fabric.operations import sudo, put, get, os, run
 from fabric.state import env
 from fabric.tasks import execute
 from django.template import loader, Context
 from django.template.base import TemplateDoesNotExist
+from django.core.management import call_command
 
 from golive.stacks.stack import config, environment
 from golive.utils import info, debug, error, warn
@@ -107,13 +110,39 @@ class BaseTask(object):
         execute(append, *args, use_sudo=True, hosts=hosts)
         env.hosts = env.hosts_orig
 
+    @parallel
     def execute(self, f, *args):
-        return execute(f, *args, hosts=env.hosts)
+        out = {}
+        for host in env.hosts:
+            out.update(execute(f, *args, host=host))
+            debug("%s: %s" % (f.__name__, args), host)
+        return out
+
+    @classmethod
+    @parallel
+    def execute(cls, f, *args):
+        out = {}
+        for host in env.hosts:
+            out.update(execute(f, *args, host=host))
+            debug("%s: %s" % (f.__name__, args), host)
+        return out
+
+    def execute_on_host(self, f, host, *args):
+        env.saved = env.hosts
+        env.hosts = [host]
+        out = self.execute(f, *args)
+        env.hosts = env.saved
+        return out
 
     @classmethod
     def execute_on_host(cls, f, host, *args):
-        return execute(f, *args, hosts=[host])
+        env.saved = env.hosts
+        env.hosts = [host]
+        out = cls.execute(f, *args)
+        env.hosts = env.saved
+        return out
 
+    @parallel
     def execute_silently(self, f, *args):
         with settings(warn_only=True):
             return execute(f, *args, hosts=env.hosts)
@@ -129,6 +158,7 @@ class BaseTask(object):
     def put(self, local_filepath, remote_filepath):
         self.execute(put, local_filepath, remote_filepath)
 
+    @parallel
     def put_sudo(self, local_filepath, remote_filepath):
         temp_remote_filepath = "/tmp/aa"
         self.execute(put, local_filepath, temp_remote_filepath)
@@ -137,6 +167,7 @@ class BaseTask(object):
     def check(self):
         print "No check actions defined"
 
+    @parallel
     def chown(self, filename, user):
         self.execute(sudo, "chown %s %s" % (user, filename))
 
@@ -146,7 +177,7 @@ class BaseTask(object):
                 info("%s on %s: OK" % (msg, host))
             else:
                 error("%s on %s: NOK" % (msg, host))
-        debug(output)
+            debug(result, host=host)
 
 
 class TemplateBasedSetup(BaseTask):
@@ -329,9 +360,6 @@ class SupervisorSetup(DebianPackageMixin, TemplateBasedSetup):
     def post_deploy(self):
         # sed pattern
         # must be set to the interface for this domain or on a different port
-        self.execute(sudo, "HOSTNAME='" + env.hosts[0] +
-                           "' ; sed \"s/%.*HOST.*%/$HOSTNAME/g\" -i "
-                           + self.destination_filename)
 
         # initial daemon start
         self.execute(sudo, "pgrep supervisor || /etc/init.d/supervisor start")
@@ -401,6 +429,14 @@ class UserSetup(BaseTask, DebianPackageMixin):
         self.append("/home/%s/.ssh/authorized_keys2" % user, self.readfile(os.path.expanduser(pubkey_file)))
 
         env.user = config['USER']
+
+        # set base variables
+        from golive.stacks.stack import environment
+        for host in environment.hosts:
+        # TODO: fix set_var
+            #call_command('set_var', config['ENV_ID'], 'HOST', host)
+            args = (config['ENV_ID'], 'HOST', host)
+            environment.stack.do("set_var", full_args=args)
 
     def readfile(self, filename):
         return open(filename, 'r').readline()
