@@ -389,13 +389,11 @@ For Developers
 
 Features in the future
 ----------------------
-- Install [newrelic] Server Monitoring Agent
-- Install [newrelic] Python Monitoring Agent
-  - create newrelic.ini (in $HOME)
-  - install new-relic with pip
-  - modify run file
 - New stacks
   - Django and Websockets
+  - Django and Celery
+- Testing
+  - Test on Debian 7
 - Deploy to dedicated Redhat servers
 - Deploy to IaaS platforms
   - Amazon EC2
