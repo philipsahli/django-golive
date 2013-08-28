@@ -17,14 +17,8 @@ class StackFactory(object):
     @classmethod
     def get(cls, stackname):
 
-        #if "CLASSIC" in stackname:
         try:
             return Stack(stackname)
-        #elif stackname == "GUNICORNED":
-        #    return Stack(stackname)
-        #elif stackname == "GUNICELERY":
-        #    return Stack(stackname)
-        #else:
         except Exception:
             raise Exception("Stack '%s' not found" % stackname)
 
@@ -74,6 +68,7 @@ class Role(object):
         self.name = name
         self.tasks = []
         self.hosts = []
+        self.operate_hosts = []
 
     def __str__(self):
         return "%s (Tasks: %s)" % (self.name, self.tasks)
@@ -86,6 +81,13 @@ class Role(object):
 
     def add_host(self, host):
         self.hosts.append(host)
+
+    @property
+    def operate_on(self):
+        return self.operate_hosts
+
+    def set_host(self, host):
+        self.operate_hosts = host
 
     def has_hosts(self):
         return len(self.hosts) > 0
@@ -187,6 +189,7 @@ class Stack(object):
 
         # load defaults, allows to be overwriten per environment
         self.environment_config = self.environment_config_temp[Stack.DEFAULTS]
+        #import pdb; pdb.set_trace()
         self.environment_config['SERVERNAME'] = self.environment_config_temp[self.environment_name.upper()]['SERVERNAME']
 
         # add environment roles
@@ -196,11 +199,12 @@ class Stack(object):
         self.environment_config['PLATFORM'] = self.base_config['PLATFORM']
 
         addons = self.base_config.get('ADDONS', None)
-        self.environment_config['ADDONS'] = addons
+        if addons:
+            self.environment_config['ADDONS'] = addons
 
-        for num, addon in enumerate(addons):
-            registry.activate(addon)
-            debug("ADDON: %s activated" % addon)
+            for num, addon in enumerate(addons):
+                registry.activate(addon)
+                debug("ADDON: %s activated" % addon)
 
         # set remote user in the environment
         self._set_user()
@@ -251,7 +255,12 @@ class Stack(object):
         mod = sys.modules['golive.stacks.stack']
         mod.config = self.environment_config
         mod.config.update({'ENV_ID': self.environment_name})
-        mod.config.update({'DB_HOST': self.environment.get_role("DB_HOST").hosts[0]})
+
+        # put host of db in config
+        if self.environment.get_role("DB_HOST"):
+            mod.config.update({'DB_HOST': self.environment.get_role("DB_HOST").hosts[0]})
+        else:
+            mod.config.update({'DB_HOST': None})
         mod.environment = self.environment
         mod.environment.stack = self
 
@@ -259,19 +268,14 @@ class Stack(object):
             # set options to mod.config
             mod.config['OPTIONS'] = self.options
 
-    def do(self, job, task=None, role=None, full_args=None):
+    def do(self, job, task=None, role=None, host=None, full_args=None):
         # make stack config available to tasks
         self._set_stack_config()
 
         if job == Stack.INIT:
-            self.initialize()
+            self.init()
         elif job == Stack.DEPLOY:
-            if task is not None:
-                self.deploy(selected_task=task)
-            elif role is not None:
-                self.deploy(selected_role=role)
-            else:
-                self.deploy_all()
+            self.deploy_all()
         elif job == Stack.UPDATE:
             self.update()
         elif job == Stack.STATUS:
@@ -309,7 +313,7 @@ class Stack(object):
     ######
     # TASKS
     ######
-    def initialize(self):
+    def init(self):
         self._execute_tasks(Stack.INIT)
 
     def deploy_all(self):
@@ -394,16 +398,11 @@ class Stack(object):
         # restore
         self._execute_tasks(Stack.RESTORE)
 
-    def deploy(self, selected_task=None, selected_role=None):
-        if selected_task:
-            self._cleanout_tasks(selected_task)
-        if selected_role:
-            self._cleanout_role(selected_task)
-
+    def deploy(self):
         self._execute_tasks(Stack.DEPLOY)
 
     #####
-    # Cleanup
+    # Cleanout
     #####
     def _cleanout_role(self, selected_role):
         """
@@ -429,6 +428,25 @@ class Stack(object):
                 selected_roles_for_task.append(role)
             environment.roles = selected_roles_for_task
 
+    def _cleanout_host(self, selected_host=None):
+        if selected_host:
+            if not selected_host in environment.hosts:
+                error("Unknown host")
+                sys.exit(0)
+        for role_idx, role in enumerate(environment.roles):
+            if selected_host:
+                selected_hosts = []
+                for host_index in range(len(role.hosts)):
+                    if role.hosts[host_index] == selected_host:
+                        selected_hosts.append(selected_host)
+                        # remove any other role where our host is not in
+                        self._cleanout_role(role.name)
+                role.set_host(selected_hosts)
+            else:
+                role.set_host(role.hosts)
+
+        info("HOSTS selected: %s" % role.operate_on)
+
     ######
     # Execution
     ######
@@ -443,7 +461,7 @@ class Stack(object):
             if role.has_hosts():
                 # prepare env for fabric
                 self._prepare_env(role)
-                info("** HOSTS %s" % role.hosts)
+                info("** HOSTS %s" % role.operate_on)
                 for task in role.tasks:
                     try:
                         # addon BEFORE
@@ -498,8 +516,12 @@ class Stack(object):
                             exec_method()
 
     def _prepare_env(self, role):
-        env.roledefs.update({role: role.hosts})
-        env.hosts = role.hosts
+        env.roledefs.update({role: role.operate_on})
+        # set all hosts to operate_on
+        if len(role.operate_on) == 0:
+            env.hosts = role.hosts
+        else:
+            env.hosts = role.operate_on
 
     def _get_method(self, obj, method):
         method_impl = getattr(obj, method, None)
@@ -520,5 +542,3 @@ class Stack(object):
 
     def hosts_for_role(self, role):
         return self.get_role(role).hosts
-
-

@@ -13,7 +13,7 @@ class Command(BaseCommand):
         return self.config[key]
 
     def handle(self, *args, **options):
-        job = sys.argv[1]
+        job = 'set_var'
         if len(args) < 3:
             self.stderr.write('Missing arguments\n')
             sys.exit(1)

@@ -126,10 +126,9 @@ Deployment
                --task golive.layers.app.DjangoSetup     # Specified task only
 
     python manage.py update ENV \
-               --host goliveweb                         # Tasks on specified host
+               --host testserver2                       # Tasks on target host
 
-With the option `--fast` time intensiv tasks are not executed. The option is usefull if
-you only update your code and static files should not be collected and not any required python module from `requirements.txt` should not be installed/upgraded.
+With the option `--fast` time intensiv tasks (for deploy and update) are not executed. The option is usefull if you only update your code and static files should not be collected and not any required python module from `requirements.txt` should not be installed/upgraded.
 
     python manage.py update ENV --fast
 
@@ -139,7 +138,7 @@ you only update your code and static files should not be collected and not any r
 
 ### Logs
 
-Executes a `tail -f` on all logfiles located in the directory `log` on the remote server.
+Executes a `tail -f` on all logfiles located in the directory `log` on the targets.
 
     python manage.py logs ENV
 

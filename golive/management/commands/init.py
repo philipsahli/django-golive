@@ -1,6 +1,7 @@
-from golive.management import CoreCommand
+from golive.management import SelectiveCommand
+from django.core.management import BaseCommand
 
 
-class Command(CoreCommand):
+class Command(SelectiveCommand):
     pass
 

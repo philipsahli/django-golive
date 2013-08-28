@@ -1,4 +1,5 @@
 from django.core.management import BaseCommand
+from optparse import make_option
 from fabric.state import output
 import sys
 from golive.stacks.stack import StackFactory
@@ -37,9 +38,42 @@ class CoreCommand(BaseCommand):
         role = None
         if 'role' in options.keys():
             role = options['role']
+        # host decision
+        host = None
+        if 'host' in options.keys():
+            host = options['host']
+
+        self.stack._set_stack_config()
+
+        self.stack._cleanout_host(host)
+        if task:
+            self.stack._cleanout_tasks(task)
+        if role:
+            self.stack._cleanout_role(role)
 
         # execute
-        self.stack.do(job, task=task, role=role)
+        self.stack.do(job, task=task, role=role, host=host)
 
     def end(self):
         self.stdout.write('Done\n')
+
+
+class SelectiveCommand(CoreCommand):
+    pass
+    option_list = BaseCommand.option_list + (
+        make_option('--task',
+                    action='store',
+                    dest='task',
+                    default=None,
+                    help='Execute task'),
+        make_option('--role',
+                    action='store',
+                    dest='role',
+                    default=None,
+                    help='Run on role'),
+        make_option('--host',
+                    action='store',
+                    dest='host',
+                    default=None,
+                    help='Operate on host'),
+    )

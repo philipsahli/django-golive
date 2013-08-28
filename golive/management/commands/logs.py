@@ -1,7 +1,12 @@
 import os
 from django.core.management import BaseCommand
+import subprocess
+from fabric.operations import run
 from fabric.state import output
+import thread
+from fabric.tasks import execute
 import sys
+import time
 from golive.stacks.stack import StackFactory
 import yaml
 
@@ -23,9 +28,19 @@ class Command(BaseCommand):
         # execute
         hosts = self.stack.environment.hosts
         user = self.stack.environment_config['USER']
-        if len(hosts) > 1:
-            self.stderr.write('Multiple hosts possible\n')
-            sys.exit(1)
 
-        # tail
-        os.execvp("ssh", ("ssh", "-x", "-l",  user, self.stack.environment.hosts[0], "tail", "-f", "log/*log"))
+        try:
+            for host in hosts:
+                thread.daemon = True
+                thread.start_new_thread(tail_logs, ("thread_name", host, user))
+            while True:
+                pass
+        except (KeyboardInterrupt, SystemExit):
+            print "Exiting"
+
+
+def tail_logs(thread_name, host, user):
+    cmd = ["ssh", "-x", "-l", user, host, "tail", "-F", "-f", "log/*log", "|",
+           "while", "read", "line", ";", "do", "echo", host, "$line", ";", "done"
+    ]
+    subprocess.call(cmd, shell=False)

@@ -94,7 +94,7 @@ class StackFactoryTest(BaseTestCase):
         mock_execute.return_value = "", "", True
         mock_readfile.return_value = "filecontent"
         self.stack.do(Stack.INIT)
-        self.assertEqual(84, mock_execute.call_count)
+        self.assertEqual(90, mock_execute.call_count)
 
 
     #@patch("golive.utils.resolve_host")
