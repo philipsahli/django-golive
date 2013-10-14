@@ -8,4 +8,6 @@ for key_val in $(cat $HOME/.golive.rc); do
    fi
 done
 
-exec {{ PYTHON }} {{ PROJECT_DIR }}/manage.py celery worker -B -E --loglevel=debug --settings={{SETTINGS}}
+{% block exports %}{% endblock %}
+
+exec {{ PRE_EXECUTABLE }} {{ PYTHON }} {{ PROJECT_DIR }}/manage.py celery worker -B -E --loglevel=info --settings={{SETTINGS}}

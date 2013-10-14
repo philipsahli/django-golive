@@ -45,6 +45,7 @@ class NewRelicPythonAddon(Addon, TemplateBasedSetup):
         # render
         try:
             self.context_data = {'APPNAME': "%s_%s" % (config['PROJECT_NAME'], config['ENV_ID']),
+                                 'USER': config['USER'],
                                  'LICENSE_KEY':  get_remote_envvar("GOLIVE_NEWRELIC_LICENSE_KEY",
                                                                    environment.get_role("APP_HOST").hosts[0]),
 
