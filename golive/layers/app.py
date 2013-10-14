@@ -114,9 +114,8 @@ class DjangoSetup(BaseTask, DjangoBaseTask):
         self.manage("collectstatic --noinput --settings=%s" % self._settings_modulestring())
 
     def _settings_modulestring(self):
-        if "1.5" in django.get_version():
-            settings_modulestring = "%s.settings_%s" % (config['PROJECT_NAME'], config['ENV_ID'])
-        else:
+        settings_modulestring = "%s.settings_%s" % (config['PROJECT_NAME'], config['ENV_ID'])
+        if not os.path.exists(settings_modulestring.replace(".", "/")+".py"):
             settings_modulestring = "settings_%s" % (config['ENV_ID'])
         return settings_modulestring
 
