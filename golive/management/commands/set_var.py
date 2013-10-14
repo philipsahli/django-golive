@@ -24,7 +24,6 @@ class Command(BaseCommand):
 
         self.stack = StackFactory.get(stackname)
         self.stack.setup_environment(args[0])
-
         # execute
         self.stack.do(job, full_args=args)
 
