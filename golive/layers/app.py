@@ -185,7 +185,7 @@ class DjangoSetup(BaseTask, DjangoBaseTask):
         """
         env.user = config['USER']
         env.remote_home = "/home/" + env.user
-        self.execute(rsync_project, "%s/code/" % env.remote_home, os.getcwd(), ["*.pyc", "*.log", "**.git/*"], True)
+        self.execute(rsync_project, "%s/code/" % env.remote_home, os.getcwd(), ["*.pyc", "*.log", "**.git/*", "*tgz"], True)
 
     def _install_requirements(self):
         # needed for private repos, local keys get forwarded
