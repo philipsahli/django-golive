@@ -123,12 +123,8 @@ class DjangoSetup(BaseTask, DjangoBaseTask):
         supervisor = SupervisorSetup()
 
         # supervisor config
-        supervisor.set_context_data(PYTHON="/home/%s/.virtualenvs/%s/bin/python" % (
-            config['USER'], config['PROJECT_NAME']),
-            PROJECT_DIR="/home/%s/code/%s" % (config['USER'], config['PROJECT_NAME']),
-            PROJECT=config['PROJECT_NAME'],
-            ENVIRONMENT=config['ENV_ID'],
-            USER=config['USER'],
+        #supervisor.set_context_data(PYTHON="/home/%s/.virtualenvs/%s/bin/python" % (
+        supervisor.set_context_data(PROJECT_DIR="/home/%s/code/%s" % (config['USER'], config['PROJECT_NAME']),
             ADDONS=registry.objects_active_name,
             APPNAME=self.supervisor_appname,
             SETTINGS=self._settings_modulestring(),

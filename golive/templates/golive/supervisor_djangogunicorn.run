@@ -10,4 +10,4 @@ done
 
 {% block exports %}{% endblock %}
 
-exec {{ PRE_EXECUTABLE }} {{ PYTHON }} {{ PROJECT_DIR }}/manage.py run_gunicorn --settings={{ SETTINGS }} --bind=$GOLIVE_HOST:{{ PORT }} --access-logfile=/home/{{ USER }}/log/gunicorn_access.log --error-logfile=/home/{{USER}}/log/gunicorn_error.log
+exec {{ PRE_EXECUTABLE }} {{ PYTHON }} {{ PROJECT_DIR }}/manage.py run_gunicorn --settings={{ SETTINGS }} --bind=$GOLIVE_HOST:{{ PORT }} --access-logfile={{ LOGDIR }}/gunicorn_access.log --error-logfile={{ LOGDIR }}/gunicorn_error.log

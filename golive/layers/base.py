@@ -1,4 +1,3 @@
-import pprint
 import tempfile
 import sys
 import time
@@ -183,7 +182,30 @@ class BaseTask(object):
 class TemplateBasedSetup(BaseTask):
 
     def __init__(self):
+        # set default data available in templates
         self.context_data = {}
+
+        # reimport config
+        from golive.stacks.stack import config
+
+        home = os.path.join("/home", config['USER'])
+        self.context_data.update(
+                    {
+                        'USER': config['USER'],
+                        'HOME': home,
+                        'LOGDIR': os.path.join(home, "log"),
+                        'PYTHON': os.path.join(home, ".virtualenvs/%s/bin/python"
+                                                     % config['PROJECT_NAME']),
+                        'PROJECT': config['PROJECT_NAME'],
+                        'ENVIRONMENT': config['ENV_ID'],
+                    }
+        )
+
+        self.filename = None
+        self.local_filename = None
+        self.destination_filename = None
+        self.content = None
+
         super(TemplateBasedSetup, self).__init__()
 
     def set_filename(self, filename):
@@ -433,9 +455,7 @@ class UserSetup(BaseTask, DebianPackageMixin):
         # set base variables
         from golive.stacks.stack import environment
         for host in environment.hosts:
-        # TODO: fix set_var
-            #call_command('set_var', config['ENV_ID'], 'HOST', host)
-            args = (config['ENV_ID'], 'HOST', host)
+            args = (config['ENV_ID'], 'HOST', host, True)
             environment.stack.do("set_var", full_args=args)
 
     def readfile(self, filename):

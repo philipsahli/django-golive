@@ -108,6 +108,14 @@ class Environment(object):
         hosts = self._unique(hosts)
         return hosts
 
+    @property
+    def operate_on(self):
+        hosts = []
+        for role in self.roles:
+            hosts.append(role.operate_on)
+        hosts = self._unique(hosts)
+        return hosts
+
     def _unique(self, ls):
         lt = []
         lt += set([item for sublist in ls for item in sublist])
@@ -189,7 +197,6 @@ class Stack(object):
 
         # load defaults, allows to be overwriten per environment
         self.environment_config = self.environment_config_temp[Stack.DEFAULTS]
-        #import pdb; pdb.set_trace()
         self.environment_config['SERVERNAME'] = self.environment_config_temp[self.environment_name.upper()]['SERVERNAME']
 
         # add environment roles
@@ -293,7 +300,12 @@ class Stack(object):
     def set_var(self, full_args):
         key, value = "GOLIVE_%s" % full_args[1], full_args[2]
         env.user = config['USER']
-        for host in list(set(self.environment.hosts)):
+        #if len(full_args) == 3:
+        #    hosts = [full_args[2]]
+        #else:
+        hosts = list(set(self.environment.hosts))
+
+        for host in hosts:
 
             info("VAR: set variable %s on host %s with value: %s" % (key, host, value))
 

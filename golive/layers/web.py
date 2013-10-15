@@ -1,5 +1,4 @@
 import hashlib
-import tempfile
 import sys
 from fabric.operations import sudo, local, os
 from golive.layers.base import TemplateBasedSetup, DebianPackageMixin
@@ -47,14 +46,15 @@ class NginxSetup(DebianPackageMixin, TemplateBasedSetup):
         self.set_filename(self.CONFIGFILE)
 
         # context data for template
+        # TODO: does not work when updating only role WEB_HOST
         app_hosts = environment.get_role(self.BACKEND_ROLE).hosts
         self.set_context_data(
             SERVERNAME=config['SERVERNAME'],
-            USER=config['USER'],
             APP_HOSTS=app_hosts,
             PORT=self._port()
         )
         # render
+        print self.context_data
         tmp_file = self.load_and_render_to_tempfile(self.filename, **self.context_data)
 
         # send file
