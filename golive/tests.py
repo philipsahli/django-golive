@@ -173,10 +173,7 @@ class IPTableTest(BaseTestCase):
     def setUp(self, mock_method):
         super(TestCase, self).setUp()
 
-        #print golive.utils.resolve_host("asdf")
-
         mock_method.return_value = read_userconfigfile()
-        #mock_method_resolve.return_value = "1.2.3.4"
 
         self.environment_config_temp = yaml.load(read_userconfigfile())['CONFIG']['STACK']
 
@@ -229,14 +226,14 @@ class IPTableTest(BaseTestCase):
         #counter = iptables.set_rules("TestTask")
         #self.assertIs(counter, 0)
 
-    @patch('golive.stacks.stack.config', {'USER': "usera"})
+    @patch('golive.stacks.stack.config', {'USER': "usera", 'PROJECT_NAME': "django_example", 'ENV_ID': "TEST"})
     @patch.object(BaseTask, "run")
     @patch.object(BaseTask, "execute_on_host")
     def test_rules_set_on_hosts_new(self, mock_execute_on_host, mock_run):
         mock_run.return_value = {'golive1': '1'}
         mock_execute_on_host.return_value = {'golive1': '0'}
-        self.allow = [(['hosta', 'hostb'], IPTablesSetup.DESTINATION_ALL, "1111")]
+
+        allow = [(['hosta', 'hostb'], IPTablesSetup.DESTINATION_ALL, "1111")]
+
         iptables = IPTablesSetup()
-        iptables.prepare_rules(self.allow)
-        #counter = iptables.set_rules("TestTask")
-        #self.assertIs(counter, 1)
+        iptables.prepare_rules(allow)

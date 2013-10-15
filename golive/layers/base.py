@@ -506,7 +506,7 @@ class IPTablesSetup(TemplateBasedSetup, BaseTask):
     def __init__(self):
         from golive.stacks.stack import config
         env.user = config['USER']
-
+        self.rules = None
         super(IPTablesSetup, self).__init__()
 
     def prepare_rules(self, allow_list):
