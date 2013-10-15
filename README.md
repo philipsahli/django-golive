@@ -3,14 +3,15 @@ django-golive
 
 [![Build Status](https://travis-ci.org/fatrix/django-golive.png?branch=master)](https://travis-ci.org/fatrix/django-golive)
 
-> ... is not yet production ready. If you are interested in any updates on this:
+> ... is not yet production ready. If you are interested in any updates on it:
 
 > - follow [me] on Twitter
 > - join the [Mailinglist]
+> - visit [http://sahli.net/django-golive](sahli-golive)
 
-django-golive is focusing on the tasks executed on your servers to deploy and operate a Django-powered site.
+django-golive is focusing on the tasks executed on servers to deploy and operate a Django-powered site.
 For the most common configurations you have to create a virtualenv, setup a database, install python-modules from pip
-and setup a webserver in front of a WSGI-process.
+and configure a webserver in front of a WSGI-process.
 
 All these steps does django-golive for you. All you have to do is to prepare your project, which takes less
 than 5 minutes. Then you are ready to enjoy django-golive and repeat yourself even less!
@@ -148,7 +149,7 @@ Target Platforms
 
 At the moment only deployments to a set of installed [Debian] hosts is supported (`PLATFORM: DEDICATED`).
 
-Backup/Restore
+Recovery
 --------------
 
 ### Backup
@@ -159,7 +160,7 @@ Creates a backup of your database and downloads a gzipped tar file to your curre
 
 ### Restore
 
-Let you choose a previously taken backup of the target environment.
+Let you choose a previously taken backup of an environment.
 
     python manage.py restore ENV
 
@@ -172,9 +173,26 @@ This feature is useful to restore your production database into the integration 
 After restoring the database django-golive executes sql commands specified in a list specified in your settings
 as `GOLIVE_CLEANUP_RESTORE`.
 
+For example for a mezzanine project:
+
+    GOLIVE_CLEANUP_RESTORE = [
+        'SELECT * FROM conf_setting;',
+        'UPDATE conf_setting SET value=\'\' WHERE name=\'GOOGLE_ANALYTICS_ID\'',
+        'UPDATE conf_setting SET value=\'\' WHERE name=\'BITLY_ACCESS_TOKEN\'',
+        'UPDATE conf_setting SET value=\'\' WHERE name=\'COMMENTS_DISQUS_API_PUBLIC_KEY\'',
+        'UPDATE conf_setting SET value=\'\' WHERE name=\'COMMENTS_DISQUS_API_SECRET_KEY\'',
+        'UPDATE conf_setting SET value=\'\' WHERE name=\'COMMENTS_DISQUS_SHORTNAME\'',
+        'UPDATE conf_setting SET value=\'\' WHERE name=\'COMMENTS_DISQUS_SHORTNAME\'',
+        'UPDATE conf_setting SET value=\'\' WHERE name=\'TWITTER_CONSUMER_SECRET\'',
+        'UPDATE conf_setting SET value=\'\' WHERE name=\'TWITTER_CONSUMER_KEY\'',
+        'UPDATE conf_setting SET value=\'\' WHERE name=\'TWITTER_ACCESS_TOKEN_KEY\'',
+        'UPDATE conf_setting SET value=\'\' WHERE name=\'TWITTER_ACCESS_TOKEN_SECRET\'',
+        'UPDATE blog_blogpost SET short_url=NULL;',
+    ]
 
 
-Builtin Components
+
+Built-In Components
 ----------
 ### golive.layers.base.BaseSetup
 * OS Packages
@@ -340,31 +358,50 @@ TODO
         BROKER_URL = os.environ['GOLIVE_BROKER_URL']
 
 
-Built-In Stack's
+Built-In Stacks
 -------------
 
 ### Classic
+
 The very basic Django-Stack installed on your self-hosted platform ([Ubuntu] or [Debian], [Redhat] or [CentOS]):
 
-- Role 'WEB_HOST' (Nginx Frontent-Webserver)
+- Role `WEB_HOST` (Frontend Webserver)
 
-golive.layers.web.NginxSetup
+   - golive.layers.web.NginxSetup
 
-- One or many `APPHOST`'s (Python-Procs for Django with builtin's server)
+- One or many `APP_HOST`'s (Python-Procs for Django with builtin's server)
 
-golive.layers.web.NginxSetup
+   - golive.layers.web.NginxSetup
 
-- `DBHOST` (database server with Postgresql)
+- One `DB_HOST` (database server with Postgresql)
 
 **See Stack-File [here][example-stackfile]**
 
 ### ClassicGunicorned
 
-This Stack is inherited from 'Classic', but uses [Gunicorn] to run the project behind [Nginx].
+This Stack is inherited from `Classic`, but uses [Gunicorn] to run the project behind Nginx.
 The Components list difference:
 
-- One or many Apphosts (Python-Procs for Django with Gunicorn)
+- `APP_HOST` (Python-Procs for Django with Gunicorn)
+   - golive.layers.app.DjangoSetupGunicorn
 
+- `WEB_HOST` (Proxing to Gunicorn)
+   - golive.layers.web.NginxProxySetup
+
+
+### Gunicelery
+
+If you need asynchronous work done with celery, this stack is the right one for you.
+In addition to `Classicgunicorned` it needs to more roles:
+
+- Role `QUEUE_HOST` (Rabbitmq server)
+
+  - golive.layers.queue.RabbitMqSetup
+
+- Role `WORKER_HOST` (Doing the asynchronous work)
+
+  - golive.layers.app.WorkerSetup
+  - golive.layers.app.WorkerCamSetup
 
 Add-ons
 -------------
@@ -386,6 +423,18 @@ For Developers
 ### Contribute
 
    Forks and pull requests are welcome!
+
+### Tasks
+
+   To document
+
+### Stacks
+
+   To document
+
+### Addons
+
+   To document
 
 Features in the future
 ----------------------
@@ -416,3 +465,4 @@ Features in the future
 [django-storages]: https://pypi.python.org/pypi/django-storages
 [Amazon S3]: http://aws.amazon.com/s3/
 [Gunicorn]: http://gunicorn.org/#docs
+[sahli-golive]: http://sahli.net/django-golive
