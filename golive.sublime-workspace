@@ -1,0 +1,226 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"get",
+				"get_object_or_404"
+			],
+			[
+				"Djen",
+				"DjendBaseSaveView	(global, class)"
+			]
+		]
+	},
+	"buffers":
+	[
+	],
+	"build_system": "",
+	"command_palette":
+	{
+		"height": 107.0,
+		"selected_items":
+		[
+			[
+				"push",
+				"Git: Push"
+			],
+			[
+				":w",
+				":w - Save"
+			],
+			[
+				"status",
+				"Git: Status"
+			],
+			[
+				":0",
+				":0 - BOF"
+			],
+			[
+				"import",
+				"Rope: Import Assist"
+			],
+			[
+				"install",
+				"Package Control: Install Package"
+			],
+			[
+				"Package Control: install",
+				"Package Control: Install Package"
+			],
+			[
+				"Package Control:inst",
+				"Package Control: Install Package"
+			],
+			[
+				"Package Control: ",
+				"Package Control: Install Package"
+			]
+		],
+		"width": 449.0
+	},
+	"console":
+	{
+		"height": 125.0
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"file_history":
+	[
+		"/Users/fatrix/Dropbox/Repositories/sahli.net/app/sahli_net/settings_ci.py",
+		"/Users/fatrix/Dropbox/Repositories/sahli.net/app/sahli_net/requirements.txt",
+		"/Users/fatrix/Dropbox/Repositories/django-fastapp/fastapp/static/js/fastapp.js",
+		"/Users/fatrix/Dropbox/Apps/djend/todoapi_rest_test/get_by_id_not_found.py",
+		"/Users/fatrix/Dropbox/Repositories/django-fastapp/fastapp/urls.py",
+		"/Users/fatrix/Dropbox/Apps/djend/demo/index (1).html",
+		"/Users/fatrix/Dropbox/Apps/djend/demo/options.py",
+		"/Users/fatrix/Dropbox/Apps/djend/demo/say_hello.py",
+		"/Users/fatrix/Dropbox/Apps/djend/demo/index.html",
+		"/Users/fatrix/Library/Application Support/Sublime Text 2/Packages/User/Default (OSX).sublime-keymap",
+		"/Users/fatrix/Library/Application Support/Sublime Text 2/Packages/User/Preferences.sublime-settings",
+		"/Users/fatrix/Dropbox/Repositories/django-fastapp/.gitignore",
+		"/Users/fatrix/Library/Application Support/Sublime Text 2/Packages/Default/Preferences.sublime-settings",
+		"/Users/fatrix/Dropbox/Repositories/django-fastapp/fastapp/loader.py",
+		"/Users/fatrix/Dropbox/Repositories/django-fastapp/fastapp/middleware.py",
+		"/Users/fatrix/Library/Application Support/Sublime Text 2/Packages/SideBarEnhancements/messages/11.13.2012.1305.0.txt",
+		"/Users/fatrix/Dropbox/Repositories/django-fastapp/setup.py",
+		"/Users/fatrix/Dropbox/Repositories/django-fastapp/fastapp/templates/fastapp/index.html",
+		"/Users/fatrix/Dropbox/keychains/passwords.xml"
+	],
+	"find":
+	{
+		"height": 35.0
+	},
+	"find_in_files":
+	{
+		"height": 0.0,
+		"where_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"pusher",
+			"refresh",
+			"csrf",
+			"Edit",
+			"edit_html",
+			"form",
+			"postfinance"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"sheets":
+			[
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 34.0
+	},
+	"input":
+	{
+		"height": 31.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.git-commit":
+	{
+		"height": 100.0
+	},
+	"output.git-push":
+	{
+		"height": 100.0
+	},
+	"replace":
+	{
+		"height": 0.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+			[
+				"require",
+				"app/sahli_net/requirements.txt"
+			],
+			[
+				"urls",
+				"django-fastapp/fastapp/urls.py"
+			],
+			[
+				"models.py",
+				"fastapp/models.py"
+			],
+			[
+				"fastapp.js",
+				"fastapp/static/js/fastapp.js"
+			]
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"show_minimap": true,
+	"show_open_files": true,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 269.0,
+	"status_bar_visible": true
+}
