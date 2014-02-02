@@ -338,6 +338,7 @@ class CrontabSetup(TemplateBasedSetup):
     CRONDIR = "/etc/cron.d"
 
     def deploy(self):
+	env.user = self.stack.environment_config['USER']
         from golive.stacks.stack import config
         self.local_filename = self.TEMPLATE.replace("base", config['ROLE'].name.lower())
         if self.local_filename is None:

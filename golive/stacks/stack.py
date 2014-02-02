@@ -161,10 +161,10 @@ class Stack(object):
 
         # setup output for fabric
 
-        output['warnings'] = False
-        output['status'] = False
-        output['user'] = False
-        output['running'] = False
+        output['warnings'] = True
+        output['status'] = True
+        output['user'] = True
+        output['running'] = True
 
     def setup_environment(self, environment):
         self.environment_name = environment
