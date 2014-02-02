@@ -9,7 +9,7 @@ ENVIRONMENTS:
   DEFAULTS:
     INIT_USER: fatrix
     PROJECT_NAME: django_example
-    PUBKEY: /Volumes/Data/Users/fatrix/.ssh/id_dsa.pub
+    PUBKEY: ~/.ssh/id_dsa.pub
     # TODO: add pip packages not in requirements
     # TODO: add custom debian packages
     #

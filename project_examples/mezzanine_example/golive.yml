@@ -3,14 +3,11 @@ CONFIG:
   STACK: CLASSIC
   ADDONS:
     - NEW_RELIC_PYTHON
-
 ENVIRONMENTS:
-
   DEFAULTS:
     INIT_USER: fatrix
     PROJECT_NAME: mezzanine_example
-    PUBKEY: /Volumes/Data/Users/fatrix/.ssh/id_dsa.pub
-
+    PUBKEY: ~/.ssh/id_dsa.pub
   SANDBOX:
       SERVERNAME: golive-sandbox3
       ROLES:
