@@ -189,13 +189,12 @@ class DjangoSetup(BaseTask, DjangoBaseTask):
         env.remote_home = "/home/" + config['USER']
 
         virtualenv_dir = '%s/.virtualenvs/%s' % (env.remote_home, env.project_name)
-        pip_mirror = "http://c.pypi.python.org/simple"
 
         info("DJANGO: install python modules in virtualenv %s" % virtualenv_dir)
         # from requirements.txt
         with prefix('. %s/bin/activate' % virtualenv_dir):
             with cd("%s/code/%s" % (env.remote_home, env.project_name)):
-                cmd = "pip install -i http://c.pypi.python.org/simple " \
+                cmd = "pip install " \
                       "--download-cache=/var/cache/pip " \
                       "-r requirements.txt"
                 debug("PIP: " + cmd)
@@ -208,8 +207,8 @@ class DjangoSetup(BaseTask, DjangoBaseTask):
             for package in self.__class__.python_packages.split(" "):
                 with prefix('. %s/.virtualenvs/%s/bin/activate' % (env.remote_home, env.project_name)):
                     with cd("%s/code/%s" % (env.remote_home, env.project_name)):
-                        out = self.execute(run, "pip install -i %s --download-cache=/var/cache/pip %s"
-                                                % (pip_mirror, package))
+                        out = self.execute(run, "pip install --download-cache=/var/cache/pip %s"
+                                                % (package))
                         for host, value in out.iteritems():
                             debug(value, host=host)
 

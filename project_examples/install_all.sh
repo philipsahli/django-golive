@@ -8,11 +8,10 @@ python manage.py deploy sandbox
 python manage.py status sandbox
 
 # sandbox2
-cd django_example ; python manage.py init sandbox2
+cd ../django_example ; python manage.py init sandbox2
 python manage.py set_var sandbox2 DB_PASSWORD 'asdf'
 python manage.py deploy sandbox2
 python manage.py status sandbox2
-
 
 
 # django with gunicorn example
