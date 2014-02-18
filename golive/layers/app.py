@@ -114,10 +114,24 @@ class DjangoSetup(BaseTask, DjangoBaseTask):
         self.manage("collectstatic --noinput --settings=%s" % self._settings_modulestring())
 
     def _settings_modulestring(self):
+
+        # first change with project/settings_ENV_ID.py as newer Django projects do
         settings_modulestring = "%s.settings_%s" % (config['PROJECT_NAME'], config['ENV_ID'])
-        if not os.path.exists(settings_modulestring.replace(".", "/")+".py"):
-            settings_modulestring = "settings_%s" % (config['ENV_ID'])
-        return settings_modulestring
+        if os.path.exists(settings_modulestring.replace(".", "/")+".py"):
+            return settings_modulestring
+
+        # second change with settings_ENV_ID.py in current directory as we did earlier
+        settings_modulestring = "settings_%s" % (config['ENV_ID'])
+        if os.path.exists(settings_modulestring+".py"):
+            return settings_modulestring
+
+        # second change with settings_ENV_ID.py in current directory as we did earlier
+        settings_modulestring = "envs.%s" % config['ENV_ID']
+        if os.path.exists(settings_modulestring.replace(".", "/")+".py"):
+            return settings_modulestring
+
+        raise Exception("settings file not found")
+
 
     def _configure_startup(self):
         supervisor = SupervisorSetup()
