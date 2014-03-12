@@ -4,9 +4,9 @@ import time
 
 from fabric.api import run as remote_run
 from fabric.context_managers import settings, hide
-from fabric.contrib.files import exists, append
+from fabric.contrib.files import exists, append, sed, first
 from fabric.decorators import parallel
-from fabric.operations import sudo, put, get, os, run
+from fabric.operations import sudo, put, get, os, run, local
 from fabric.state import env
 from fabric.tasks import execute
 from django.template import loader, Context
@@ -86,7 +86,11 @@ class BaseTask(object):
 
     def mkdir(self, path):
         info("BASE: create directory %s" % path)
-        self.execute_silently(remote_run, "mkdir %s" % path)
+        print env.hosts
+        if env.hosts[0] == "localhost":
+            local("mkdir %s" % path)
+        else:
+            self.execute_silently(remote_run, "mkdir %s" % path)
 
     def rmdir(self, path):
         if self.execute(exists, path):
@@ -95,6 +99,11 @@ class BaseTask(object):
 
     def append(self, *args):
         execute(append, *args, use_sudo=True, hosts=env.hosts)
+
+    def first_file(self, host, *args):
+        print host
+        print args
+        execute(first, *args, host=host)
 
     @classmethod
     def append(cls, *args):
@@ -129,6 +138,12 @@ class BaseTask(object):
     def execute_on_host(self, f, host, *args):
         env.saved = env.hosts
         env.hosts = [host]
+
+        if env.hosts[0] == "localhost":
+            if f == run:
+                local(args)
+            else:
+                error("local function not supported, run only.")
         out = self.execute(f, *args)
         env.hosts = env.saved
         return out
@@ -137,7 +152,10 @@ class BaseTask(object):
     def execute_on_host(cls, f, host, *args):
         env.saved = env.hosts
         env.hosts = [host]
-        out = cls.execute(f, *args)
+        if env.hosts[0] == "localhost" or host == "localhost":
+            out = local(*args)
+        else:
+            out = cls.execute(f, *args)
         env.hosts = env.saved
         return out
 
@@ -149,6 +167,18 @@ class BaseTask(object):
     def execute_once(self, f, *args):
         # only on first host
         host = env['hosts'][0]
+        print host
+        if host == "localhost":
+            if f == run:
+                return local(*args)
+            elif f == sed:
+                print args
+                return local("sed -i'.bk' 's/%s/%s/g' %s" % (args[1], args[2], args[0]))
+            else:
+                print "No method found"
+                return
+
+
         return execute(f, *args, hosts=[host])
 
     def get(self, remote_filepath):
@@ -177,6 +207,10 @@ class BaseTask(object):
             else:
                 error("%s on %s: NOK" % (msg, host))
             debug(result, host=host)
+
+
+    def execute_local(self, command):
+        local(command)
 
 
 class TemplateBasedSetup(BaseTask):

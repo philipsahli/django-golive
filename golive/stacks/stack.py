@@ -355,7 +355,11 @@ class Stack(object):
         # delete temp directory
         BaseTask.execute_on_host(run, host, "rm -rf %s" % backup_dir)
         # get backup tgz
-        BaseTask.execute_on_host(get, host, backup_file, ".")
+        if env.hosts[0] == "localhost":
+            import shutil
+            shutil.move("%s/%s" % (os.environ['HOME'], backup_file), ".")
+        else:
+            BaseTask.execute_on_host(get, host, backup_file, ".")
 
     def restore(self, source_env):
         # capable to restore from another environment,
@@ -393,13 +397,13 @@ class Stack(object):
         file_path = file_list[selected]
         config['FILE_PATH'] = file_path
 
-        ts = config['TS']
         host = self.environment.get_role("DB_HOST").hosts[0]
 
         from golive.layers.base import BaseTask
         # upload backup file and extract
         info("DB: upload and extract dump %s" % file_path)
-        BaseTask.execute_on_host(put, host, file_path)
+        if host != "localhost":
+            BaseTask.execute_on_host(put, host, file_path)
         BaseTask.execute_on_host(run, host, "tar -zxvf %s " % os.path.basename(file_path))
 
         # create and save dumpfilename

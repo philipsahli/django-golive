@@ -1,6 +1,6 @@
 from django.contrib.sites.models import Site
 from django.conf import settings
-from fabric.contrib.files import sed
+from fabric.contrib.files import sed, exists
 from fabric.operations import run, prompt, os
 from fabric.state import env
 from golive import utils
@@ -37,9 +37,19 @@ class PostgresSetup(BaseTask, DjangoBaseTask, DebianPackageMixin):
         hosts = self._allowed_hosts()
         info("POSTGRES: configure pg_hba.conf")
         for host in hosts:
-            self.append("/etc/postgresql/8.4/main/pg_hba.conf",
+            paths = [
+                '/etc/postgresql/8.4/main/pg_hba.conf', 
+                '/etc/postgresql/9.1/main/pg_hba.conf'
+                ]
+            pg_hba = self.first_file(paths, host)
+            paths = [
+                '/etc/postgresql/8.4/main/postgresql.conf', 
+                '/etc/postgresql/9.1/main/postgresql.conf'
+                ]
+            postgresql = self.first_file(paths, host)
+            self.append(pg_hba, 
                                "host    all         all         %s/32          md5" % host)
-        self.append("/etc/postgresql/8.4/main/postgresql.conf", "listen_addresses = '*'")
+        self.append(postgresql, "listen_addresses = '*'")
         info("POSTGRES: restart")
         self.execute(run, self.CMD_RESTART)
 
@@ -117,10 +127,13 @@ class PostgresSetup(BaseTask, DjangoBaseTask, DebianPackageMixin):
         # the server before restore
         args = (restore_file, "%s" % db_name_source, "%s" % db_name)
         debug("DB: Change string in dumpfile on server: %s to %s " % (args[1], args[2]))
+        if config['ENV_ID'] == "local":
+            self.execute_once(sed, *args)
         self.execute_once(sed, *args)
 
         # start restore
         output = self.execute_once(run, "psql -f %s postgres " % restore_file).values()[0]
+        
         info("OUTPUT: \r\n%s" % output)
 
         # cleanup

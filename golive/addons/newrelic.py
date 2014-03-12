@@ -61,13 +61,11 @@ class NewRelicPythonAddon(Addon, TemplateBasedSetup):
             info("NEW_RELIC: %s saved to %s" % (self.local_filename, self.destination_filename))
 
             # install python package
-            python_package = "newrelic==1.13.1.31"
+            python_package = "newrelic"
             info("NEW_RELIC: install python package '%s'" % python_package)
             with prefix('. %s/.virtualenvs/%s/bin/activate' % (env.remote_home, env.project_name)):
                 with cd("%s/code/%s" % (env.remote_home, env.project_name)):
-                    self.execute(run, "pip install -i %s --download-cache=/var/cache/pip %s" %
-                                      ("http://c.pypi.python.org/simple",
-                                       python_package))
+                    self.execute(run, "pip install --download-cache=/var/cache/pip %s" % python_package)
 
         except Exception, e:
             error(e)
