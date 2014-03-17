@@ -417,6 +417,21 @@ Add following to the `CONFIG` section:
 
 Set the variable `NEWRELIC_LICENSE_KEY`. Execute the commands init and deploy. Your app and server now report metrics to [New Relic][newrelic].
 
+### PgBouncer
+
+See description on PostgreSQL Wiki: [PgBouncer][pgbouncer]
+
+Add following to the `CONFIG` section:
+
+     CONFIG:
+         ADDONS:
+              - PGBOUNCER_ADDON
+
+- Configure pgbouncer with listening port 6432 
+- START=1 in defaults (Debian only).
+- Add username/password to userlist.txt
+- Configure database in pgbouncer.ini
+
 
 For Developers
 --------------
@@ -466,3 +481,4 @@ Features in the future
 [Amazon S3]: http://aws.amazon.com/s3/
 [Gunicorn]: http://gunicorn.org/#docs
 [sahli-golive]: http://sahli.net/django-golive
+[pgbouncer]: https://wiki.postgresql.org/wiki/PgBouncer

@@ -153,3 +153,7 @@ class PostgresSetup(BaseTask, DjangoBaseTask, DebianPackageMixin):
         else:
             error("DB: is NOK")
             error(output)
+
+
+
+

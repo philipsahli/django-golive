@@ -524,7 +524,7 @@ class Stack(object):
             for allowed_task in addon.TASKS:
                 if allowed_task == str(task):
                     # check method
-                    if method is addon.METHOD:
+                    if method in addon.METHOD:
                         # check slot
                         if addon.SLOT == slot:
                             addon_obj = addon()

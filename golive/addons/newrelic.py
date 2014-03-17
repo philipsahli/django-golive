@@ -5,7 +5,9 @@ from fabric.state import env
 from golive.addons import registry, SLOT_AFTER
 from golive.layers.base import TemplateBasedSetup, DebianPackageMixin, BaseTask
 from golive.stacks.stack import Stack
-from golive.utils import info, error, get_remote_envvar
+from golive.utils import info, error
+from golive.stacks.stack import config, environment
+from golive.utils import get_remote_envvar
 
 SLOT_BEFORE = 'BEFORE'
 SLOT_INCLUDED = 'INCLUDED'
@@ -80,7 +82,7 @@ class NewRelicServerAgentAddon(Addon, DebianPackageMixin):
     NAME = "NEW_RELIC_SERVERAGENT"
     TASKS = ["golive.layers.base.BaseSetup"]
     SLOT = SLOT_AFTER
-    METHOD = Stack.INIT
+    METHOD = [Stack.INIT]
 
     def init(self):
         info("NEW_RELIC: start setup server agent")
@@ -105,3 +107,83 @@ class NewRelicServerAgentAddon(Addon, DebianPackageMixin):
         info("NEW_RELIC: end setup server agent")
 
 registry.register(NewRelicServerAgentAddon)
+
+from fabric.contrib.files import append, sed
+class PGPoolAddon(Addon, DebianPackageMixin):
+    NAME = "PGPOOL_ADDON"
+    TASKS = ["golive.layers.db.PostgresSetup"]
+    package_name = 'pgpool2'
+    SLOT = SLOT_BEFORE
+    METHOD = [Stack.INIT, Stack.DEPLOY]
+
+    def init(self):
+        DebianPackageMixin.init(self, update=True)
+        print "PGPOOLADDON_init"
+        self.execute_once(append, "/etc/pgpool2/pgpool.conf", "backend_hostname0 = 'localhost'", True )
+        self.execute_once(append, "/etc/pgpool2/pgpool.conf", "backend_weight0 = 1", True )
+        self.execute_once(append, "/etc/pgpool2/pgpool.conf", "backend_port0 = 5432", True )
+        self.execute_once(append, "/etc/pgpool2/pgpool.conf", "backend_data_directory0 = '/var/lib/postgresql/9.1/main'", True )
+        self.execute_once(append, "/etc/pgpool2/pgpool.conf", "backend_hostname0 = 'localhost'", True )
+
+    def deploy(self):
+        print "PGPOOLADDON_deploy"
+
+        # setup pcp
+        users = self.execute_once(sudo, "su - postgres -c \"psql -c 'select usename, passwd from pg_shadow;'\"")
+
+
+        from golive.stacks.stack import config, environment
+        db_host = config['DB_HOST']
+        # make db name
+        #db_name = "%s_%s" % (config['PROJECT_NAME'], config['ENV_ID'])
+        #db_password = get_remote_envvar('GOLIVE_DB_PASSWORD', db_host)
+        # create user (role)
+        user = config['USER']
+        for puser in users[db_host].splitlines():
+            if user in puser:
+                pcp_user = puser.replace(" ", "").replace("|", ":")
+                print pcp_user
+                self.execute_once(append, "/etc/pgpool2/pcp.conf", pcp_user, True )
+                self.execute_once(sudo, "/etc/init.d/pgpool restart")
+
+
+
+
+registry.register(PGPoolAddon)
+
+
+class PGBouncerAddon(Addon, DebianPackageMixin):
+    NAME = "PGBOUNCER_ADDON"
+    TASKS = ["golive.layers.db.PostgresSetup"]
+    package_name = 'pgbouncer'
+    SLOT = SLOT_BEFORE
+    METHOD = [Stack.INIT, Stack.DEPLOY]
+
+    def init(self):
+        DebianPackageMixin.init(self, update=True)
+        self.execute_once(sudo, "sed -i.bak -r -e 's/START=0/START=1/g' \"$(echo /etc/default/pgbouncer)\"")
+
+
+    def deploy(self):
+        print "PGBOUNCER_deploy"
+
+        # setup pcp
+        users = self.execute_once(sudo, "su - postgres -c \"psql -c 'select usename, passwd from pg_shadow;'\"")
+
+        # sahli_net_sandbox = host=localhost dbname=sahli_net_sandbox
+        from golive.stacks.stack import config#, environment
+        db_name = "%s_%s" % (config['PROJECT_NAME'], config['ENV_ID'])
+        self.execute_once(sudo, "sed -i.bak 's/.*bazdb on localhost.*/\\n%s = host=localhost dbname=%s/g' \"$(echo /etc/pgbouncer/pgbouncer.ini)\"" %  (db_name, db_name))
+
+        db_host = config['DB_HOST']
+        user = config['USER']
+        for puser in users[db_host].splitlines():
+            if user in puser:
+                pcp_user = puser.strip().split("|")
+                pcp_string = '\"%s\" \"%s\"' % (pcp_user[0], pcp_user[1])
+                pcp_string2 = pcp_string.replace(" ", "").replace('""', '" "')
+                self.execute_once(append, "/etc/pgbouncer/userlist.txt", pcp_string2, True )
+                self.execute_once(sudo, "/etc/init.d/pgbouncer restart")
+
+
+registry.register(PGBouncerAddon)
